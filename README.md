@@ -2,6 +2,11 @@
 
 > A collection of short, daily learning logs by MinHyeok Lee.
 
+![GitHub repo size](https://img.shields.io/github/repo-size/MinHyeok-lee1/TIL)
+![GitHub last commit](https://img.shields.io/github/last-commit/MinHyeok-lee1/TIL)
+![GitHub license](https://img.shields.io/github/license/MinHyeok-lee1/TIL)
+![GitHub stars](https://img.shields.io/github/stars/MinHyeok-lee1/TIL?style=social)
+
 ## Categories
 
 - Embedded / STM32
