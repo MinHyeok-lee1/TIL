@@ -39,8 +39,7 @@ jobs:
                                   summary = meta.get("summary", "")
                                   tags = meta.get("tags", [])
 
-                                  # ✅ 이스케이프 문제 수정
-                                  relpath = path.replace("\\\\", "/")
+                                  relpath = Path(path).as_posix()  # ✅ POSIX 경로 처리
 
                                   for tag in tags:
                                       tag_map.setdefault(tag, []).append(
