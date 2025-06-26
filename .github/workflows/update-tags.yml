@@ -20,38 +20,33 @@ jobs:
         run: |
           python3 <<EOF
           import os, yaml
-          from datetime import datetime
           from pathlib import Path
+
+          root_dir = Path(".")
 
           tag_map = {}
 
-          for root, _, files in os.walk("TIL"):
-              for file in files:
-                  if file.endswith(".md"):
-                      path = os.path.join(root, file)
-                      with open(path, encoding="utf-8") as f:
-                          lines = f.read().split("---")
-                          if len(lines) >= 3:
-                              try:
-                                  meta = yaml.safe_load(lines[1])
-                                  title = meta.get("title", file)
-                                  date = meta.get("date", "")
-                                  summary = meta.get("summary", "")
-                                  tags = meta.get("tags", [])
+          for path in root_dir.rglob("*.md"):
+              if "TIL/tags/" in str(path):  # tags 폴더 제외
+                  continue
 
-                                  relpath = Path(path).as_posix()  # ✅ POSIX 경로 처리
+              try:
+                  content = path.read_text(encoding="utf-8")
+                  parts = content.split("---")
+                  if len(parts) >= 3:
+                      meta = yaml.safe_load(parts[1])
+                      title = meta.get("title", path.name)
+                      date = meta.get("date", "")
+                      summary = meta.get("summary", "")
+                      tags = meta.get("tags", [])
 
-                                  for tag in tags:
-                                      tag_map.setdefault(tag, []).append(
-                                          (title, date, summary, relpath)
-                                      )
-                              except Exception as e:
-                                  print(f"⚠️ Failed to parse {file}: {e}")
-
-          # ✅ 디버깅 로그 출력
-          print(f"📦 Parsed tags: {list(tag_map.keys())}")
-          total_entries = sum(len(entries) for entries in tag_map.values())
-          print(f"🧾 Total tag entries: {total_entries}")
+                      relpath = path.as_posix()
+                      for tag in tags:
+                          tag_map.setdefault(tag, []).append(
+                              (title, date, summary, relpath)
+                          )
+              except Exception as e:
+                  print(f"⚠️ Failed to parse {path}: {e}")
 
           os.makedirs("TIL/tags", exist_ok=True)
 
@@ -62,8 +57,6 @@ jobs:
                   content += f"| [{title}]({path}) | {date} | {summary} |\n"
               with open(f"TIL/tags/{tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
-
-          print("✅ Tag markdown files written.")
           EOF
 
       - name: Commit and Push if Changed
