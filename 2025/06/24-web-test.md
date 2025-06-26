@@ -1,7 +1,7 @@
 ---
 title: "Web test"
 date: "2025-06-24"
-tags: ["web", "1"]
+tags: ["web"]
 summary: "TIL web page test 용"
 ---
 

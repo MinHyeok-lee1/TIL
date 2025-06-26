@@ -1,7 +1,7 @@
 ---
 title: "STM32 test"
 date: "2025-06-25"
-tags: ["stm32", "2"]
+tags: ["stm32"]
 summary: "TIL stm32 page test 용"
 ---
 
