@@ -1,0 +1,66 @@
+name: 🏷️ Generate Tag Pages from TIL
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 매일 자정 실행
+  workflow_dispatch:
+
+jobs:
+  generate-tags:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Parse TIL Tags and Generate Pages
+        run: |
+          python3 <<EOF
+          import os, yaml
+          from datetime import datetime
+          from pathlib import Path
+
+          tag_map = {}
+
+          for root, _, files in os.walk("TIL"):
+              for file in files:
+                  if file.endswith(".md"):
+                      path = os.path.join(root, file)
+                      with open(path, encoding="utf-8") as f:
+                          lines = f.read().split("---")
+                          if len(lines) >= 3:
+                              try:
+                                  meta = yaml.safe_load(lines[1])
+                                  title = meta.get("title", file)
+                                  date = meta.get("date", "")
+                                  summary = meta.get("summary", "")
+                                  tags = meta.get("tags", [])
+
+                                  relpath = path.replace("\\", "/")
+                                  for tag in tags:
+                                      tag_map.setdefault(tag, []).append(
+                                          (title, date, summary, relpath)
+                                      )
+                              except Exception as e:
+                                  print(f"⚠️ Failed to parse {file}: {e}")
+
+          os.makedirs("TIL/tags", exist_ok=True)
+          for tag, entries in tag_map.items():
+              entries.sort(key=lambda x: x[1], reverse=True)
+              content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
+              for title, date, summary, path in entries:
+                  content += f"| [{title}]({path}) | {date} | {summary} |\n"
+              with open(f"TIL/tags/{tag}.md", "w", encoding="utf-8") as f:
+                  f.write(content)
+          EOF
+
+      - name: Commit and Push if Changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add TIL/tags
+          git diff --cached --quiet || git commit -m "🏷️ update: auto-generated tag pages"
+          git push
