@@ -27,7 +27,7 @@ jobs:
           tag_map = {}
 
           for path in root_dir.rglob("*.md"):
-              if "TIL/tags/" in str(path):  # tags 폴더 제외
+              if "tags/" in str(path):  # tags 폴더 제외
                   continue
 
               try:
@@ -48,14 +48,14 @@ jobs:
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
-          os.makedirs("TIL/tags", exist_ok=True)
+          os.makedirs("tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
               entries.sort(key=lambda x: x[1], reverse=True)
               content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
               for title, date, summary, path in entries:
                   content += f"| [{title}]({path}) | {date} | {summary} |\n"
-              with open(f"TIL/tags/{tag}.md", "w", encoding="utf-8") as f:
+              with open(f"tags/{tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
           EOF
 
@@ -63,6 +63,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add TIL/tags
+          git add tags
           git diff --cached --quiet || git commit -m "🏷️ update: auto-generated tag pages"
           git push
