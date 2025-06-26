@@ -1,6 +1,6 @@
 ---
 title: "Git test"
-date: "2025-06-28"
+date: "2025-06-26"
 tags: ["git", "test"]
 summary: "TIL git page test 용"
 ---
