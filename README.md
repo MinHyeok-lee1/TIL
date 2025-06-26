@@ -1,5 +1,11 @@
 # 📘 TIL (Today I Learned)
 
+## 📌 Workflows
+
+[![🗒️ Auto Commit TIL](https://github.com/MinHyeok-lee1/TIL/actions/workflows/auto-commit-til.yml/badge.svg)](https://github.com/MinHyeok-lee1/TIL/actions/workflows/auto-commit-til.yml)
+[![🏷️ Update Tag Pages](https://github.com/MinHyeok-lee1/TIL/actions/workflows/update-tags.yml/badge.svg)](https://github.com/MinHyeok-lee1/TIL/actions/workflows/update-tags.yml)
+[![🔄 Sync to Portfolio](https://github.com/MinHyeok-lee1/TIL/actions/workflows/sync-til-to-portfolio.yml/badge.svg)](https://github.com/MinHyeok-lee1/TIL/actions/workflows/sync-til-to-portfolio.yml)
+
 > A collection of short, daily learning logs by MinHyeok Lee.
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/MinHyeok-lee1/TIL)
