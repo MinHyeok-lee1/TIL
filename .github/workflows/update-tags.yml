@@ -2,7 +2,7 @@ name: 🏷️ Generate Tag Pages from TIL
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * *" # 매일 자정 실행
   workflow_dispatch:
 
 jobs:
@@ -48,6 +48,11 @@ jobs:
                               except Exception as e:
                                   print(f"⚠️ Failed to parse {file}: {e}")
 
+          # ✅ 디버깅 로그 출력
+          print(f"📦 Parsed tags: {list(tag_map.keys())}")
+          total_entries = sum(len(entries) for entries in tag_map.values())
+          print(f"🧾 Total tag entries: {total_entries}")
+
           os.makedirs("TIL/tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
@@ -57,6 +62,8 @@ jobs:
                   content += f"| [{title}]({path}) | {date} | {summary} |\n"
               with open(f"TIL/tags/{tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
+
+          print("✅ Tag markdown files written.")
           EOF
 
       - name: Commit and Push if Changed
