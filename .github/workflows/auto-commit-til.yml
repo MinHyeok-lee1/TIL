@@ -1,0 +1,30 @@
+name: 📚 Auto Commit TIL
+
+on:
+  schedule:
+    - cron: "50 14 * * *" # 매일 한국시간 23:50 (UTC+9 → 14:50 UTC)
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  auto-commit-til:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🔍 Detect TIL changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 변경된 파일 중 TIL 관련된 것만 커밋
+          git add TIL/
+
+          # 변경 사항이 있을 경우에만 커밋
+          if ! git diff --cached --quiet; then
+            git commit -m "🗒️ TIL update: Auto-commit changes in TIL directory"
+            git push
+          else
+            echo "No changes in TIL directory. Nothing to commit."
+          fi
