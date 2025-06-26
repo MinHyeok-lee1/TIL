@@ -2,7 +2,7 @@ name: 🏷️ Generate Tag Pages from TIL
 
 on:
   schedule:
-    - cron: "0 0 * * *" # 매일 자정 실행
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -39,7 +39,9 @@ jobs:
                                   summary = meta.get("summary", "")
                                   tags = meta.get("tags", [])
 
-                                  relpath = path.replace("\\", "/")
+                                  # ✅ 이스케이프 문제 수정
+                                  relpath = path.replace("\\\\", "/")
+
                                   for tag in tags:
                                       tag_map.setdefault(tag, []).append(
                                           (title, date, summary, relpath)
@@ -48,6 +50,7 @@ jobs:
                                   print(f"⚠️ Failed to parse {file}: {e}")
 
           os.makedirs("TIL/tags", exist_ok=True)
+
           for tag, entries in tag_map.items():
               entries.sort(key=lambda x: x[1], reverse=True)
               content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
