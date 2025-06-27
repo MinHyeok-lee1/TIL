@@ -22,8 +22,8 @@ jobs:
           import os, yaml
           from pathlib import Path
 
+          REPO_URL = "https://github.com/MinHyeok-lee1/TIL/blob/main/"
           root_dir = Path(".")
-
           tag_map = {}
 
           for path in root_dir.rglob("*.md"):
@@ -40,10 +40,11 @@ jobs:
                       summary = meta.get("summary", "")
                       tags = meta.get("tags", [])
 
-                      relpath = path.as_posix()
+                      relpath = path.relative_to(root_dir).as_posix()
+                      link = f"{REPO_URL}{relpath}"
                       for tag in tags:
                           tag_map.setdefault(tag, []).append(
-                              (title, date, summary, relpath)
+                              (title, date, summary, link)
                           )
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
@@ -53,8 +54,8 @@ jobs:
           for tag, entries in tag_map.items():
               entries.sort(key=lambda x: x[1], reverse=True)
               content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
-              for title, date, summary, path in entries:
-                  content += f"| [{title}]({path}) | {date} | {summary} |\n"
+              for title, date, summary, link in entries:
+                  content += f"| [{title}]({link}) | {date} | {summary} |\n"
               with open(f"tags/{tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
           EOF
