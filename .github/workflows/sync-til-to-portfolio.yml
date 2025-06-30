@@ -59,6 +59,20 @@ jobs:
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
+
           git add .
-          git commit -m "📝 Sync TIL repo to portfolio (with tags)" || echo "No changes"
+          CHANGED_FILES=$(git diff --cached --name-only)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes"
+            exit 0
+          fi
+
+          FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+          FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/ - /')
+
+          COMMIT_MSG="📝 Sync TIL to portfolio: $(date +'%Y-%m-%d') (commit: ${GITHUB_SHA::7})"
+          COMMIT_BODY="변경된 파일 수: $FILE_COUNT개\n\n변경된 파일 목록:\n$FILE_LIST"
+
+          git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
           git push
