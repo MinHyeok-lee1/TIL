@@ -72,7 +72,15 @@ jobs:
           FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/ - /')
 
           COMMIT_MSG="📝 Sync TIL to portfolio: $(date +'%Y-%m-%d') (commit: ${GITHUB_SHA::7})"
-          COMMIT_BODY="변경된 파일 수: $FILE_COUNT개\n\n변경된 파일 목록:\n$FILE_LIST"
+          COMMIT_BODY=$(cat <<EOF
+          변경된 파일 수: $FILE_COUNT개
+
+          변경된 파일 목록:
+          $FILE_LIST
+          EOF
+          )
+
+          git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
 
           git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
           git push
