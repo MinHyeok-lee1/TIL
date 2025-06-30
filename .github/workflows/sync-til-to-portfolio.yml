@@ -24,22 +24,24 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Copy TIL files
+      - name: Copy TIL files including tags
         run: |
           mkdir -p portfolio-repo/pages/til/
           rsync -av --delete \
-            --exclude '.git/' --exclude '.github/' --exclude 'tags/' --exclude 'README.md' \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'README.md' \
             til-repo/ portfolio-repo/pages/til/
 
-      - name: Convert .md to .mdx
+      - name: Convert .md to .mdx (TIL only, not tags)
         run: |
-          find portfolio-repo/pages/til -name "*.md" | while read file; do
+          find portfolio-repo/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
             mv "$file" "${file%.md}.mdx"
           done
 
-      - name: Generate _meta.json
+      - name: Generate _meta.json (TIL only)
         run: |
-          find portfolio-repo/pages/til -type d | while read dir; do
+          find portfolio-repo/pages/til -type d ! -path "*/tags*" | while read dir; do
             files=$(find "$dir" -maxdepth 1 -name "*.mdx" -exec basename {} .mdx \;)
             if [ -n "$files" ]; then
               echo "{" > "$dir/_meta.json"
@@ -57,5 +59,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "📝 Sync TIL to portfolio with .mdx and _meta.json" || echo "No changes"
+          git commit -m "📝 Sync TIL to portfolio (with tags)" || echo "No changes"
           git push
