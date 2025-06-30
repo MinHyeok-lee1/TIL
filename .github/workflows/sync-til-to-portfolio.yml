@@ -57,8 +57,8 @@ jobs:
       - name: Commit and Push
         run: |
           cd portfolio-repo
-          git config user.name "MinHyeok Bot"
-          git config user.email "minhyeok-bot@users.noreply.github.com"
+          git config user.name "MinHyeok-lee1"
+          git config user.email "minhyeok.lee1@gmail.com"
 
           git add .
           CHANGED_FILES=$(git diff --cached --name-only)
