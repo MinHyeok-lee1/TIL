@@ -65,6 +65,19 @@ jobs:
 
           rename_folder portfolio-repo/src/pages/til
 
+          # Fixed TIL index
+          cat <<EOF > portfolio-repo/src/pages/til/index.mdx
+          # 📓 Today I Learned (TIL)
+
+          > 꿔준한 기록은 최고의 성장으로 이어진다.  
+          개발/임베디드/도구에 대한 학습 기록을 정리합니다.
+
+          ## 📅 연도별
+
+          - [2025년 6월](/til/til-2025/til-06)
+          - [🍿️ 태그 목록](/til/tags)
+          EOF
+
           create_meta_index() {
             DIR=$1
             TITLE=$2
@@ -82,7 +95,7 @@ jobs:
 
             for sub in $(find "$DIR" -mindepth 1 -maxdepth 1 -type d | sort); do
               key=$(basename "$sub")
-              label=$(echo "$key" | sed 's/til-\([0-9][0-9][0-9][0-9]\)/\1\ub144 TIL/' | sed 's/til-\([0-9][0-9]\)/\1월 TIL/')
+              label=$(echo "$key" | sed 's/til-\([0-9][0-9][0-9][0-9]\)/\1년 TIL/' | sed 's/til-\([0-9][0-9]\)/\1월 TIL/')
               echo "  \"$key\": \"$label\"," >> "$META"
             done
 
@@ -90,30 +103,13 @@ jobs:
               name=$(basename "$file" .mdx)
               title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
               day=${name#til-}; day=${day%%-*}
-              echo "  \"$name\": \"${day}\uc77c $title\"," >> "$META"
+              echo "  \"$name\": \"${day}일 $title\"," >> "$META"
             done
 
             sed -i '$ s/,$//' "$META"
             echo "}" >> "$META"
           }
 
-          create_index_page() {
-            INDEX_PATH="portfolio-repo/src/pages/til/index.mdx"
-            mkdir -p $(dirname "$INDEX_PATH")
-            cat <<EOF > "$INDEX_PATH"
-            # Today I Learned (TIL)
-
-            > 꽤준한 기록은 최고의 성장으로 이어진다.  
-            개발/임베디드/도구에 대한 학습 기록을 정리합니다.
-
-            ## 📅 연도별
-
-            - [2025연 6월](/til/til-2025/til-06)
-            - [🍿️ 태그 목록](/til/tags)
-            EOF
-          }
-
-          create_index_page
           create_meta_index portfolio-repo/src/pages/til "📓 TIL 소개"
 
           for year in portfolio-repo/src/pages/til/til-*; do
@@ -132,9 +128,11 @@ jobs:
           if [ -d "$TAGS_DIR" ]; then
             echo "{" > "$TAGS_META"
             echo '  "index": "소개",' >> "$TAGS_META"
+            echo '  "tags": "태그 모음"' >> "$TAGS_META"
+            echo "}" >> "$TAGS_META"
 
             cat <<EOF > "$TAGS_INDEX"
-            # 🎟️ 태그 목록
+            # 🏷️ 태그 목록
 
             TIL의 태그별 분류입니다.
 
@@ -145,29 +143,22 @@ jobs:
             for tag_file in "$TAGS_DIR"/*.md; do
               [ -f "$tag_file" ] || continue
               tag=$(basename "$tag_file" .md)
-              echo "  \"$tag\": \"\ud0dc\uadf8 \ubaa9\ub85d\"," >> "$TAGS_META"
-              echo "| [$tag](/til/tags/$tag.md) | [\ud83d\udd17 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
+              echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
 
-              cat <<EOF > "$tag_file"
-              # $tag 태그 문서
+              echo "# $tag 태그 문서" > "$tag_file"
+              echo "" >> "$tag_file"
+              echo "## 📘 Nextra 정리" >> "$tag_file"
 
-              ## 📘 Nextra 정리
-              EOF
               grep -rl "tags: \[.*$tag.*\]" portfolio-repo/src/pages/til | grep .mdx | while read path; do
                 title=$(grep '^title:' "$path" | cut -d ':' -f2- | xargs)
                 rel_path=$(echo "$path" | sed 's|portfolio-repo/src/pages||' | sed 's|.mdx$||')
                 echo "- [$title]($rel_path)" >> "$tag_file"
               done
 
-              cat <<EOF >> "$tag_file"
-
-              ## 🔗 GitHub 웹무담
-              - [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)
-              EOF
+              echo "" >> "$tag_file"
+              echo "## 🔗 GitHub 원본" >> "$tag_file"
+              echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$tag_file"
             done
-
-            sed -i '$ s/,$//' "$TAGS_META"
-            echo "}" >> "$TAGS_META"
           fi
 
       - name: Commit and Push
@@ -175,7 +166,6 @@ jobs:
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
-
           git add .
           CHANGED_FILES=$(git diff --cached --name-only)
 
