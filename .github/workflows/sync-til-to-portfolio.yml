@@ -54,8 +54,8 @@ jobs:
           get_day_title() {
             file="$1"
             title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
-            day=${file##*/}
-            day=${day%%-*}
+            day=${file##*/}         # til-24-web-test.mdx
+            day=${day%%-*}          # 24
             echo "${day}일 ${title}"
           }
 
@@ -92,6 +92,11 @@ jobs:
           }
 
           cd portfolio-repo/src/pages/til
+
+          # Remove raw numeric folders like 2025/, 06/
+          for raw in 2025 06; do
+            [ -d "$raw" ] && rm -rf "$raw"
+          done
 
           for y in [0-9][0-9][0-9][0-9]; do
             [ -d "$y" ] || continue
@@ -131,7 +136,7 @@ jobs:
             done
           done
 
-          # 태그 처리
+          # TAGS
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
           TAGS_META="$TAGS_DIR/_meta.json"
           TAGS_INDEX="$TAGS_DIR/index.mdx"
@@ -139,8 +144,10 @@ jobs:
           if [ -d "$TAGS_DIR" ]; then
             echo "{" > "$TAGS_META"
             echo '  "index": "소개",' >> "$TAGS_META"
+            echo '  "tags": "태그 모음"' >> "$TAGS_META"
+            echo "}" >> "$TAGS_META"
 
-            echo "# 🏷️ 태그 목록" > "$TAGS_INDEX"
+            echo "# 🎟️ 태그 목록" > "$TAGS_INDEX"
             echo "" >> "$TAGS_INDEX"
             echo "TIL의 태그별 분류입니다." >> "$TAGS_INDEX"
             echo "" >> "$TAGS_INDEX"
@@ -150,7 +157,6 @@ jobs:
             for tag_file in "$TAGS_DIR"/*.md; do
               [ -f "$tag_file" ] || continue
               tag=$(basename "$tag_file" .md)
-              echo "  \"$tag\": \"$tag\"," >> "$TAGS_META"
               echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
 
               echo "# $tag 태그 문서" > "$tag_file"
@@ -167,9 +173,6 @@ jobs:
               echo "## 🔗 GitHub 원본" >> "$tag_file"
               echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$tag_file"
             done
-
-            sed -i '$ s/,$//' "$TAGS_META" || sed -i '' '$ s/,$//' "$TAGS_META"
-            echo "}" >> "$TAGS_META"
           fi
 
       - name: Commit and Push
