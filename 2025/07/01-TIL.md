@@ -7,7 +7,7 @@ summary: "TIL이란?"
 
 # TIL
 
-**TIL**은 **"Today I Learned"**의 약자로,
+**TIL**은 Today I Learned의 약자로,
 하루 동안 새롭게 배운 지식이나 경험, 문제 해결 과정 등을 짧게 기록하는 습관 또는 콘텐츠 형식을 말함
 
 ---
