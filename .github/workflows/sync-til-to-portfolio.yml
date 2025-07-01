@@ -66,7 +66,7 @@ jobs:
           echo "" >> "$BASE/til-2025/index.mdx"
           echo "| 월 | 링크 |" >> "$BASE/til-2025/index.mdx"
           echo "|----|------|" >> "$BASE/til-2025/index.mdx"
-          echo "| 06월 | [/til/til-2025/til-06](./til-06) |" >> "$BASE/til-2025/index.mdx"
+          echo "| 06월 | [til-06 바로가기](/til/til-2025/til-06) |" >> "$BASE/til-2025/index.mdx"
 
           echo '{ "index": "소개", "til-06": "06월 TIL" }' > "$BASE/til-2025/_meta.json"
 
@@ -82,8 +82,9 @@ jobs:
 
           for file in "$BASE/til-2025/til-06"/*.mdx; do
             fname=$(basename "$file" .mdx)
+            [ "$fname" = "index" ] && continue
             title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
-            echo "| $title | Nextra 바로가기 | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$BASE/til-2025/til-06/index.mdx"
+            echo "| $title | [Nextra 바로가기](/til/til-2025/til-06/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$BASE/til-2025/til-06/index.mdx"
             echo ", \"$fname\": \"$title\"" >> "$BASE/til-2025/til-06/_meta.json"
           done
 
@@ -116,13 +117,11 @@ jobs:
               if grep -q "$tag" "$file"; then
                 fname=$(basename "$file" .mdx)
                 title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
-                nextra="/til/til-2025/til-06/$fname"
-                github="https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md"
-                echo "| $title | Nextra 바로가기 | [GitHub 바로가기]($github) |" >> "$md"
+                echo "| $title | [Nextra 바로가기](/til/til-2025/til-06/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$md"
               fi
             done
 
-            echo "| $tag_title | Nextra 바로가기 | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $tag_title | [Nextra 바로가기](/til/tags/$tag) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
