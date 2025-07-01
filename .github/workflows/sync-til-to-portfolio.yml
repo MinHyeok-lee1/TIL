@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "**/*.md"
-  workflow_dispatch:
+  workflow_dispatch: # ✅ 수동 실행 지원
 
 jobs:
   sync-to-portfolio:
@@ -25,47 +25,20 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Sync TIL with til- prefix structure
+      - name: Copy TIL files including tags
         run: |
-          set -e
-
           mkdir -p portfolio-repo/src/pages/til/
+          rsync -av --delete             --exclude '.git/'             --exclude '.github/'             --exclude 'README.md'             til-repo/ portfolio-repo/src/pages/til/
 
-          echo "📁 Copying TIL files..."
-          rsync -av --delete \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude 'README.md' \
-            til-repo/ portfolio-repo/src/pages/til/
-
+      - name: Convert .md to .mdx (excluding tags/)
+        run: |
           find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
             mv "$file" "${file%.md}.mdx"
           done
 
-          rename_folder() {
-            cd $1
-            for year in [0-9][0-9][0-9][0-9]; do
-              [ -d "$year" ] || continue
-              mv "$year" "til-$year"
-              cd "til-$year"
-              for month in [0-1][0-9]; do
-                [ -d "$month" ] || continue
-                mv "$month" "til-$month"
-                cd "til-$month"
-                for file in *.mdx; do
-                  base=$(basename "$file" .mdx)
-                  mv "$file" "til-$base.mdx"
-                done
-                cd ..
-              done
-              cd ../..
-            done
-            cd -
-          }
-
-          rename_folder portfolio-repo/src/pages/til
-
-          # Fixed TIL index
+      - name: Create index.mdx (고정 텍스트)
+        run: |
+          mkdir -p portfolio-repo/src/pages/til
           cat <<EOF > portfolio-repo/src/pages/til/index.mdx
           # 📓 Today I Learned (TIL)
 
@@ -78,94 +51,12 @@ jobs:
           - [🏷️ 태그 모음](/til/tags)
           EOF
 
-          create_meta_index() {
-            DIR=$1
-            TITLE=$2
-            META="$DIR/_meta.json"
-            INDEX="$DIR/index.mdx"
-
-            mkdir -p "$DIR"
-
-            echo "# $TITLE" > "$INDEX"
-            echo "" >> "$INDEX"
-            echo "$TITLE 소개 페이지입니다." >> "$INDEX"
-
-            echo "{" > "$META"
-            echo '  "index": "소개",' >> "$META"
-
-            for sub in $(find "$DIR" -mindepth 1 -maxdepth 1 -type d | sort); do
-              key=$(basename "$sub")
-              label=$(echo "$key" | sed 's/til-\([0-9][0-9][0-9][0-9]\)/\1년 TIL/' | sed 's/til-\([0-9][0-9]\)/\1월 TIL/')
-              echo "  \"$key\": \"$label\"," >> "$META"
-            done
-
-            for file in $(find "$DIR" -maxdepth 1 -type f -name 'til-*.mdx' | sort); do
-              name=$(basename "$file" .mdx)
-              title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
-              day=${name#til-}; day=${day%%-*}
-              echo "  \"$name\": \"${day}일 $title\"," >> "$META"
-            done
-
-            sed -i '$ s/,$//' "$META"
-            echo "}" >> "$META"
-          }
-
-          create_meta_index portfolio-repo/src/pages/til "📓 TIL 소개"
-
-          for year in portfolio-repo/src/pages/til/til-*; do
-            [ -d "$year" ] || continue
-            create_meta_index "$year" "📅 $(basename $year | cut -d '-' -f2)년 TIL"
-            for month in "$year"/til-*; do
-              [ -d "$month" ] || continue
-              create_meta_index "$month" "🗓️ $(basename $year | cut -d '-' -f2)년 $(basename $month | cut -d '-' -f2)월 TIL"
-            done
-          done
-
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          TAGS_META="$TAGS_DIR/_meta.json"
-          TAGS_INDEX="$TAGS_DIR/index.mdx"
-
-          if [ -d "$TAGS_DIR" ]; then
-            echo "{" > "$TAGS_META"
-            echo '  "index": "소개",' >> "$TAGS_META"
-            echo '  "tags": "태그 모음"' >> "$TAGS_META"
-            echo "}" >> "$TAGS_META"
-
-            cat <<EOF > "$TAGS_INDEX"
-            # 🏷️ 태그 목록
-
-            TIL의 태그별 분류입니다.
-
-            | Nextra 정리 | GitHub 바로가기 |
-            | --- | --- |
-            EOF
-
-            for tag_file in "$TAGS_DIR"/*.md; do
-              [ -f "$tag_file" ] || continue
-              tag=$(basename "$tag_file" .md)
-              echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
-
-              echo "# $tag 태그 문서" > "$tag_file"
-              echo "" >> "$tag_file"
-              echo "## 📘 Nextra 정리" >> "$tag_file"
-
-              grep -rl "tags: \[.*$tag.*\]" portfolio-repo/src/pages/til | grep .mdx | while read path; do
-                title=$(grep '^title:' "$path" | cut -d ':' -f2- | xargs)
-                rel_path=$(echo "$path" | sed 's|portfolio-repo/src/pages||' | sed 's|.mdx$||')
-                echo "- [$title]($rel_path)" >> "$tag_file"
-              done
-
-              echo "" >> "$tag_file"
-              echo "## 🔗 GitHub 원본" >> "$tag_file"
-              echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$tag_file"
-            done
-          fi
-
       - name: Commit and Push
         run: |
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
+
           git add .
           CHANGED_FILES=$(git diff --cached --name-only)
 
@@ -174,6 +65,16 @@ jobs:
             exit 0
           fi
 
-          COMMIT_MSG="📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
-          git commit -m "$COMMIT_MSG"
+          FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+          FILE_LIST=$(echo "$CHANGED_FILES" | sed 's/^/ - /')
+
+          COMMIT_MSG="📝 Sync TIL to portfolio: $(date +'%Y-%m-%d') (commit: ${GITHUB_SHA::7})"
+          COMMIT_BODY=$(cat <<EOF
+          변경된 파일 수: $FILE_COUNT개
+
+          변경된 파일 목록:
+          $FILE_LIST
+          EOF
+          )
+          git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
           git push || { echo "⚠️ Git push failed"; exit 1; }
