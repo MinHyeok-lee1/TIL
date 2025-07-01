@@ -25,35 +25,27 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Copy TIL content to Portfolio
+      - name: Copy TIL content into Portfolio
         run: |
           mkdir -p portfolio-repo/src/pages/til
-          rsync -av --exclude="tags" til-repo/ portfolio-repo/src/pages/til/
+          cp -r til-repo/2025 portfolio-repo/src/pages/til/
+          cp -r til-repo/tags portfolio-repo/src/pages/til/
 
-      - name: Rename folders
+      - name: Rename folders to til-xxxx
+        run: |
+          mv portfolio-repo/src/pages/til/2025 portfolio-repo/src/pages/til/til-2025
+          mv portfolio-repo/src/pages/til/til-2025/06 portfolio-repo/src/pages/til/til-2025/til-06
+
+      - name: Convert all .md to .mdx
+        run: |
+          find portfolio-repo/src/pages/til -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
+
+      - name: Create index.mdx and _meta.json
         run: |
           BASE="portfolio-repo/src/pages/til"
-
-          if [ -d "$BASE/2025" ]; then
-            mv "$BASE/2025" "$BASE/til-2025"
-          fi
-
-          if [ -d "$BASE/til-2025/06" ]; then
-            mv "$BASE/til-2025/06" "$BASE/til-2025/til-06"
-          fi
-
-      - name: Convert .md to .mdx
-        run: |
-          find portfolio-repo/src/pages/til -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
-            mv "$file" "${file%.md}.mdx"
-          done
-
-      - name: Create index.mdx and _meta.json files
-        run: |
-          BASE="portfolio-repo/src/pages/til"
-          mkdir -p "$BASE" "$BASE/til-2025" "$BASE/til-2025/til-06"
 
           # til/index.mdx
+          mkdir -p "$BASE"
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
@@ -67,13 +59,17 @@ jobs:
           EOF
 
           echo '{ "index": "소개", "til-2025": "2025년 TIL" }' > "$BASE/_meta.json"
+
+          # til-2025
           echo -e "# 소개\n\n2025년 TIL 기록입니다." > "$BASE/til-2025/index.mdx"
           echo '{ "index": "소개", "til-06": "06월 TIL" }' > "$BASE/til-2025/_meta.json"
-          echo -e "# 소개\n\n6월의 TIL 기록입니다." > "$BASE/til-2025/til-06/index.mdx"
 
+          # til-06
+          echo -e "# 소개\n\n6월의 TIL 기록입니다." > "$BASE/til-2025/til-06/index.mdx"
           echo '{' > "$BASE/til-2025/til-06/_meta.json"
           echo '  "index": "소개",' >> "$BASE/til-2025/til-06/_meta.json"
-          find "$BASE/til-2025/til-06" -type f -name "*.mdx" | while read file; do
+
+          for file in "$BASE/til-2025/til-06"/*.mdx; do
             fname=$(basename "$file" .mdx)
             day=${fname:0:2}
             title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
@@ -82,12 +78,12 @@ jobs:
           sed -i '$ s/,$//' "$BASE/til-2025/til-06/_meta.json"
           echo '}' >> "$BASE/til-2025/til-06/_meta.json"
 
-      - name: Generate tag pages
+      - name: Convert tags and generate tag index
         run: |
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
           TIL_DIR="portfolio-repo/src/pages/til/til-2025/til-06"
-          mkdir -p "$TAGS_DIR"
 
+          mkdir -p "$TAGS_DIR"
           cat <<EOF > "$TAGS_DIR/index.mdx"
           # 🏷️ 태그 모음
 
@@ -99,7 +95,12 @@ jobs:
 
           echo '{ "index": "소개" }' > "$TAGS_DIR/_meta.json"
 
-          tags=$(grep -h "tags:" "$TIL_DIR"/*.mdx | sed -E 's/.*tags: \[(.*)\]/\1/' | tr ',' '\n' | sed 's/[][]//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u)
+          for md in "$TAGS_DIR"/*.md; do
+            [ -f "$md" ] || continue
+            mv "$md" "${md%.md}.mdx"
+          done
+
+          tags=$(basename -a "$TAGS_DIR"/*.mdx | sed 's/\.mdx$//' | sort)
 
           for tag in $tags; do
             tag_file="$TAGS_DIR/$tag.mdx"
@@ -115,12 +116,12 @@ jobs:
                 fname=$(basename "$file" .mdx)
                 title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
                 nextra="/til/til-2025/til-06/$fname"
-                github="https://github.com/MinHyeok-lee1/TIL/blob/main/src/pages/til/til-2025/til-06/$fname.mdx"
+                github="https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.mdx"
                 echo "| $title | [$nextra]($nextra) | [GitHub]($github) |" >> "$tag_file"
               fi
             done
 
-            echo "| $tag_title | [/til/tags/$tag](/til/tags/$tag) | [GitHub](https://github.com/MinHyeok-lee1/TIL/tree/main/src/pages/til/tags/$tag.mdx) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $tag_title | [/til/tags/$tag](/til/tags/$tag) | [GitHub](https://github.com/MinHyeok-lee1/TIL/tree/main/tags/$tag.mdx) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
