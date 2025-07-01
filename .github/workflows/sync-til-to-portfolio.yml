@@ -28,7 +28,7 @@ jobs:
       - name: Copy TIL content to Portfolio
         run: |
           mkdir -p portfolio-repo/src/pages/til
-          rsync -av --exclude="tags" til-repo/src/pages/til/ portfolio-repo/src/pages/til/
+          rsync -av --exclude="tags" til-repo/ portfolio-repo/src/pages/til/
 
       - name: Rename folders
         run: |
