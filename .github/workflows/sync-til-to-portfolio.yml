@@ -28,15 +28,20 @@ jobs:
       - name: Copy TIL content into Portfolio
         run: |
           mkdir -p portfolio-repo/src/pages/til
-          cp -r til-repo/2025 portfolio-repo/src/pages/til/
+          for YEAR_DIR in til-repo/[0-9][0-9][0-9][0-9]; do
+            cp -r "$YEAR_DIR" portfolio-repo/src/pages/til/
+          done
           cp -r til-repo/tags portfolio-repo/src/pages/til/
 
       - name: Rename folders to til-xxxx
         run: |
-          mv portfolio-repo/src/pages/til/2025 portfolio-repo/src/pages/til/til-2025
-          for month in portfolio-repo/src/pages/til/til-2025/*; do
-            name=$(basename "$month")
-            mv "$month" "portfolio-repo/src/pages/til/til-2025/til-$name"
+          for YEAR_PATH in portfolio-repo/src/pages/til/[0-9][0-9][0-9][0-9]; do
+            YEAR=$(basename "$YEAR_PATH")
+            mv "$YEAR_PATH" "portfolio-repo/src/pages/til/til-$YEAR"
+            for MONTH_PATH in portfolio-repo/src/pages/til/til-$YEAR/*; do
+              MONTH=$(basename "$MONTH_PATH")
+              mv "$MONTH_PATH" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
+            done
           done
 
       - name: Convert all .md to .mdx
@@ -47,94 +52,88 @@ jobs:
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
+          echo '{ "index": "소개", "tags": "태그모음" }' > "$BASE/_meta.json"
 
-          # til/index.mdx
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 최고의 성장으로 이어진다.
 
           ## 📅 연도별
-
-          - [🏷️ 태그 모음](/til/tags)
-          - [2025년 TIL](/til/til-2025)
           EOF
 
-          echo '{ "index": "소개", "til-2025": "2025년 TIL", "tags": "태그모음" }' > "$BASE/_meta.json"
+          for YEAR_PATH in "$BASE"/til-[0-9][0-9][0-9][0-9]; do
+            YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
+            echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
+            echo ", \"til-$YEAR\": \"$YEAR년 TIL\"" >> "$BASE/_meta.json"
 
-          # til-2025 index
-          mkdir -p "$BASE/til-2025"
-          echo "# 소개" > "$BASE/til-2025/index.mdx"
-          echo "" >> "$BASE/til-2025/index.mdx"
-          echo "2025년 TIL 기록입니다." >> "$BASE/til-2025/index.mdx"
-          echo "" >> "$BASE/til-2025/index.mdx"
-          echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$BASE/til-2025/index.mdx"
-          echo "|----|------------------|------------------|" >> "$BASE/til-2025/index.mdx"
+            # 연도별 index
+            echo "# 소개" > "$YEAR_PATH/index.mdx"
+            echo "" >> "$YEAR_PATH/index.mdx"
+            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
+            echo "" >> "$YEAR_PATH/index.mdx"
+            echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
+            echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
 
-          echo '{ "index": "소개"' > "$BASE/til-2025/_meta.json"
+            echo '{ "index": "소개"' > "$YEAR_PATH/_meta.json"
 
-          for folder in "$BASE/til-2025"/til-*; do
-            month=$(basename "$folder")
-            month_num=$(echo "$month" | cut -d'-' -f2)
-            echo "| ${month_num}월 | [/til/til-2025/$month](/til/til-2025/$month) | [GitHub](https://github.com/MinHyeok-lee1/TIL/tree/main/2025/$month_num) |" >> "$BASE/til-2025/index.mdx"
-            echo ", "$month": "${month_num}월 TIL"" >> "$BASE/til-2025/_meta.json"
+            for MONTH_PATH in "$YEAR_PATH"/til-*; do
+              MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
+              echo "| ${MONTH}월 | [/til/til-$YEAR/til-$MONTH](/til/til-$YEAR/til-$MONTH) | [GitHub](https://github.com/MinHyeok-lee1/TIL/tree/main/$YEAR/$MONTH) |" >> "$YEAR_PATH/index.mdx"
+              echo ", \"til-$MONTH\": \"${MONTH}월 TIL\"" >> "$YEAR_PATH/_meta.json"
 
-            # til-XX index
-            echo "# 소개" > "$folder/index.mdx"
-            echo "" >> "$folder/index.mdx"
-            echo "${month_num}월의 TIL 기록입니다." >> "$folder/index.mdx"
-            echo "" >> "$folder/index.mdx"
-            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$folder/index.mdx"
-            echo "|-------|------------------|------------------|" >> "$folder/index.mdx"
+              # 월별 index
+              echo "# 소개" > "$MONTH_PATH/index.mdx"
+              echo "" >> "$MONTH_PATH/index.mdx"
+              echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
+              echo "" >> "$MONTH_PATH/index.mdx"
+              echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_PATH/index.mdx"
+              echo "|-------|------------------|------------------|" >> "$MONTH_PATH/index.mdx"
 
-            echo '{ "index": "소개"' > "$folder/_meta.json"
-
-            for file in "$folder"/*.mdx; do
-              fname=$(basename "$file" .mdx)
-              [ "$fname" = "index" ] && continue
-              title=$(echo "${fname:3}" | sed 's/-/ /g')
-              day=$(echo "$fname" | cut -d'-' -f1)
-              echo "| ${day}일 $title | [Nextra 바로가기](/til/til-2025/$month/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/$month_num/$fname.md) |" >> "$folder/index.mdx"
-              echo ", "$fname": "${day}일 $title"" >> "$folder/_meta.json"
+              echo '{ "index": "소개"' > "$MONTH_PATH/_meta.json"
+              for FILE in "$MONTH_PATH"/*.mdx; do
+                FNAME=$(basename "$FILE" .mdx)
+                [ "$FNAME" = "index" ] && continue
+                DAY=$(echo "$FNAME" | cut -d'-' -f1)
+                TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
+                echo "| ${DAY}일 $TITLE | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
+                echo ", \"$FNAME\": \"${DAY}일 $TITLE\"" >> "$MONTH_PATH/_meta.json"
+              done
+              echo "}" >> "$MONTH_PATH/_meta.json"
             done
-            echo "}" >> "$folder/_meta.json"
+            echo "}" >> "$YEAR_PATH/_meta.json"
           done
 
       - name: Convert tags and generate tag index
         run: |
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          TIL_DIR="portfolio-repo/src/pages/til/til-2025"
+          echo '# 소개
 
-          mkdir -p "$TAGS_DIR"
-          echo "# 소개" > "$TAGS_DIR/index.mdx"
-          echo "" >> "$TAGS_DIR/index.mdx"
-          echo "TIL 태그 모음입니다." >> "$TAGS_DIR/index.mdx"
-          echo "" >> "$TAGS_DIR/index.mdx"
-          echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
+          TIL 태그 모음입니다.
 
-          echo '{ "index": "소개" }' > "$TAGS_DIR/_meta.json"
+          | 태그 | Nextra 바로가기 | GitHub 바로가기 |
+          |------|------------------|------------------|' > "$TAGS_DIR/index.mdx"
+                    echo '{ "index": "소개" }' > "$TAGS_DIR/_meta.json"
 
-          for tag_file in "$TAGS_DIR"/*.mdx; do
-            tag=$(basename "$tag_file" .mdx)
-            [ "$tag" = "index" ] && continue
-            echo "# 🏷️ $tag TIL 모음" > "$tag_file"
-            echo "" >> "$tag_file"
-            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$tag_file"
-            echo "|-------|------------------|------------------|" >> "$tag_file"
+          for TAG_FILE in "$TAGS_DIR"/*.mdx; do
+            TAG=$(basename "$TAG_FILE" .mdx)
+            [ "$TAG" = "index" ] && continue
+            echo "# 🏷️ $TAG TIL 모음" > "$TAG_FILE"
+            echo "" >> "$TAG_FILE"
+            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAG_FILE"
+            echo "|-------|------------------|------------------|" >> "$TAG_FILE"
 
-            for month_dir in "$TIL_DIR"/til-*; do
-              for file in "$month_dir"/*.mdx; do
-                fname=$(basename "$file" .mdx)
-                [ "$fname" = "index" ] && continue
-                if grep -q "$tag" "$file"; then
-                  title=$(echo "${fname:3}" | sed 's/-/ /g')
-                  echo "| $title | [Nextra 바로가기](/til/til-2025/$(basename $month_dir)/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/$(echo $month_dir | grep -o '[0-9]*')/$fname.md) |" >> "$tag_file"
-                fi
-              done
+            for FILE in portfolio-repo/src/pages/til/til-*/til-*/*.mdx; do
+              FNAME=$(basename "$FILE" .mdx)
+              [ "$FNAME" = "index" ] && continue
+              if grep -q "$TAG" "$FILE"; then
+                YEAR_MONTH=$(echo "$FILE" | grep -o 'til-[0-9]*/til-[0-9]*')
+                TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
+                echo "| $TITLE | [Nextra 바로가기](/til/$YEAR_MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/${YEAR_MONTH/til-/}/${FNAME}.md) |" >> "$TAG_FILE"
+              fi
             done
 
-            echo "| $tag | [Nextra 바로가기](/til/tags/$tag) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $TAG | [Nextra 바로가기](/til/tags/$TAG) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$TAG.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
