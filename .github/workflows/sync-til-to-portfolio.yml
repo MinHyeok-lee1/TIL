@@ -78,19 +78,41 @@ jobs:
           sed -i '$ s/,$//' "$base_dir/til-2025/til-06/_meta.json"
           echo '}' >> "$base_dir/til-2025/til-06/_meta.json"
 
-      - name: Generate _meta.json for tags and update tag pages
+      - name: Generate _meta.json and tag index.mdx with summaries
         run: |
           tags_dir="portfolio-repo/src/pages/til/tags"
           til_path="portfolio-repo/src/pages/til/til-2025/til-06"
 
-          # 1. tags 디렉토리 _meta.json
-          echo '{ "index": "소개", "tags": "태그 모음" }' > "$tags_dir/_meta.json"
+          # ✅ 디렉토리 없을 경우 생성
+          mkdir -p "$tags_dir"
 
-          # 2. mdx 파일이 있을 때만 실행
+          # 0. tags 디렉토리 index.mdx 생성
+          index_file="$tags_dir/index.mdx"
+          echo "# 🏷️ 태그 모음" > "$index_file"
+          echo "" >> "$index_file"
+          echo "주요 태그별 TIL 모음입니다. 각 항목을 클릭하면 세부 내용을 볼 수 있습니다." >> "$index_file"
+          echo "" >> "$index_file"
+          echo "| 태그 | Nextra 정리 | GitHub 원본 |" >> "$index_file"
+          echo "|------|----------------|------------------|" >> "$index_file"
+
+          # 1. tags 디렉토리 _meta.json
+          echo '{ "index": "태그 모음" }' > "$tags_dir/_meta.json"
+
+          # 2. 태그별 세부 mdx 파일 생성
           if [ -d "$til_path" ] && compgen -G "$til_path/*.mdx" > /dev/null; then
             for tag_file in "$tags_dir"/*.mdx; do
               tag=$(basename "$tag_file" .mdx)
-              echo "| 제목 | Nextra 정리 | GitHub 바로가기 |" > "$tag_file"
+              tag_title=$(echo "$tag" | sed -E 's/(^| )(\w)/\U\\2/g')
+              nextra_link="/til/tags/$tag"
+              github_link="https://github.com/MinHyeok-lee1/TIL/tree/main/src/pages/til/tags"
+
+              # index.mdx에 요약 추가
+              echo "| $tag_title | [$nextra_link]($nextra_link) | [GitHub]($github_link) |" >> "$index_file"
+
+              # 세부 mdx 파일 초기화
+              echo "# 🏷️ $tag_title TIL 모음" > "$tag_file"
+              echo "" >> "$tag_file"
+              echo "| 제목 | Nextra 정리 | GitHub 바로가기 |" >> "$tag_file"
               echo "|------|--------------|------------------|" >> "$tag_file"
 
               for file in "$til_path"/*.mdx; do
