@@ -25,32 +25,6 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Generate _meta.json for tags and update tag pages
-        run: |
-          tags_dir="portfolio-repo/src/pages/til/tags"
-          til_path="portfolio-repo/src/pages/til/til-2025/til-06"
-
-          # 1. _meta.json 생성
-          echo '{ "index": "소개", "tags": "태그 모음" }' > "$tags_dir/_meta.json"
-
-          # 2. 각 태그파일 내부 표 업데이트
-          for tag_file in "$tags_dir"/*.mdx; do
-            tag=$(basename "$tag_file" .mdx)
-            echo "| 제목 | Nextra 정리 | GitHub 바로가기 |" > "$tag_file"
-            echo "|------|--------------|------------------|" >> "$tag_file"
-
-            for file in "$til_path"/*.mdx; do
-              fname=$(basename "$file" .mdx)
-              content=$(cat "$file")
-              if echo "$content" | grep -q "tags:.*$tag"; then
-                title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\\2/g')
-                nextra="/til/til-2025/til-06/$fname"
-                github="https://github.com/MinHyeok-lee1/TIL/blob/main/src/pages/til/til-2025/til-06/$fname.mdx"
-                echo "| $title | [$nextra]($nextra) | [GitHub]($github) |" >> "$tag_file"
-              fi
-            done
-          done
-
       - name: Convert .md to .mdx (excluding tags/)
         run: |
           find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" -print0 | while IFS= read -r -d '' file; do
@@ -103,6 +77,35 @@ jobs:
           done
           sed -i '$ s/,$//' "$base_dir/til-2025/til-06/_meta.json"
           echo '}' >> "$base_dir/til-2025/til-06/_meta.json"
+
+      - name: Generate _meta.json for tags and update tag pages
+        run: |
+          tags_dir="portfolio-repo/src/pages/til/tags"
+          til_path="portfolio-repo/src/pages/til/til-2025/til-06"
+
+          # 1. tags 디렉토리 _meta.json
+          echo '{ "index": "소개", "tags": "태그 모음" }' > "$tags_dir/_meta.json"
+
+          # 2. mdx 파일이 있을 때만 실행
+          if [ -d "$til_path" ] && compgen -G "$til_path/*.mdx" > /dev/null; then
+            for tag_file in "$tags_dir"/*.mdx; do
+              tag=$(basename "$tag_file" .mdx)
+              echo "| 제목 | Nextra 정리 | GitHub 바로가기 |" > "$tag_file"
+              echo "|------|--------------|------------------|" >> "$tag_file"
+
+              for file in "$til_path"/*.mdx; do
+                if grep -q "tags:.*$tag" "$file"; then
+                  fname=$(basename "$file" .mdx)
+                  title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\\2/g')
+                  nextra="/til/til-2025/til-06/$fname"
+                  github="https://github.com/MinHyeok-lee1/TIL/blob/main/src/pages/til/til-2025/til-06/$fname.mdx"
+                  echo "| $title | [$nextra]($nextra) | [GitHub]($github) |" >> "$tag_file"
+                fi
+              done
+            done
+          else
+            echo "No .mdx files found in $til_path. Skipping tag table generation."
+          fi
 
       - name: Commit and Push
         run: |
