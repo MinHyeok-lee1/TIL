@@ -28,7 +28,11 @@ jobs:
       - name: Copy TIL files including tags
         run: |
           mkdir -p portfolio-repo/src/pages/til/
-          rsync -av --delete             --exclude '.git/'             --exclude '.github/'             --exclude 'README.md'             til-repo/ portfolio-repo/src/pages/til/
+          rsync -av --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'README.md' \
+            til-repo/ portfolio-repo/src/pages/til/
 
       - name: Convert .md to .mdx (excluding tags/)
         run: |
@@ -47,8 +51,8 @@ jobs:
 
           ## 📅 연도별
 
-          - [2025년 6월](/til/til-2025/til-06)
           - [🏷️ 태그 모음](/til/tags)
+          - [2025년 6월](/til/til-2025/til-06)
           EOF
 
       - name: Commit and Push
