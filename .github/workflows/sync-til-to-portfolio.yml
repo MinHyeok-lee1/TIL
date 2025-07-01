@@ -25,13 +25,13 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Sync TIL with til- prefix structure
+      - name: Sync TIL and build meta/index
         run: |
           set -e
 
           mkdir -p portfolio-repo/src/pages/til/
 
-          echo "📁 Copying TIL files with prefix..."
+          echo "📁 Copying TIL files..."
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/' \
@@ -42,75 +42,96 @@ jobs:
             mv "$file" "${file%.md}.mdx"
           done
 
-          rename_folder() {
-            cd $1
-            for year in [0-9][0-9][0-9][0-9]; do
-              [ -d "$year" ] || continue
-              mv "$year" "til-$year"
-              cd "til-$year"
-              for month in [0-1][0-9]; do
-                [ -d "$month" ] || continue
-                mv "$month" "til-$month"
-                cd "til-$month"
-                for file in *.mdx; do
-                  base=$(basename "$file" .mdx)
-                  mv "$file" "til-$base.mdx"
-                done
-                cd ..
-              done
-              cd ../..
-            done
-            cd -
+          localize_name() {
+            case "$1" in
+              til-2025) echo "2025년 TIL" ;;
+              til-06) echo "06월 TIL" ;;
+              til-07) echo "07월 TIL" ;;
+              *) echo "$1" ;;
+            esac
           }
 
-          rename_folder portfolio-repo/src/pages/til
+          get_day_title() {
+            file="$1"
+            title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
+            day=${file##*/}
+            day=${day%%-*}
+            echo "${day}일 ${title}"
+          }
 
-          # Make safe JSON and UTF-8
-          create_meta_index() {
+          create_meta_and_index() {
             DIR=$1
-            TITLE=$2
-            META="$DIR/_meta.json"
-            INDEX="$DIR/index.mdx"
+            META_FILE="$DIR/_meta.json"
+            INDEX_FILE="$DIR/index.mdx"
+            TITLE="$2"
 
-            mkdir -p "$DIR"
+            echo "# $TITLE" > "$INDEX_FILE"
+            echo "" >> "$INDEX_FILE"
+            echo "$TITLE 소개 페이지입니다." >> "$INDEX_FILE"
 
-            cat <<EOF > "$INDEX"
-            # $TITLE
+            folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
+            files=$(find "$DIR" -mindepth 1 -maxdepth 1 -type f -name '*.mdx' ! -name 'index.mdx' | sort || true)
 
-            $TITLE 소개 페이지입니다.
-            EOF
+            echo "{" > "$META_FILE"
+            echo '  "index": "소개",' >> "$META_FILE"
 
-            echo "{" > "$META"
-            echo '  "index": "소개",' >> "$META"
-
-            for sub in $(find "$DIR" -mindepth 1 -maxdepth 1 -type d | sort); do
-              key=$(basename "$sub")
-              label=$(echo "$key" | sed 's/til-\([0-9][0-9]*\)/\1년 TIL/' | sed 's/til-\([0-9][0-9]\)/\1월 TIL/')
-              echo "  \"$key\": \"$label\"," >> "$META"
+            for path in $folders; do
+              name=$(basename "$path")
+              label=$(localize_name "$name")
+              echo "  \"$name\": \"$label\"," >> "$META_FILE"
             done
 
-            for file in $(find "$DIR" -maxdepth 1 -type f -name 'til-*.mdx' | sort); do
+            for file in $files; do
               name=$(basename "$file" .mdx)
-              title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
-              day=${name#til-}; day=${day%%-*}
-              echo "  \"$name\": \"${day}일 $title\"," >> "$META"
+              label=$(get_day_title "$file")
+              echo "  \"$name\": \"$label\"," >> "$META_FILE"
             done
 
-            sed -i '$ s/,$//' "$META"
-            echo "}" >> "$META"
+            sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE"
+            echo "}" >> "$META_FILE"
           }
 
-          create_meta_index portfolio-repo/src/pages/til "📓 TIL 소개"
+          cd portfolio-repo/src/pages/til
 
-          for year in portfolio-repo/src/pages/til/til-*; do
-            [ -d "$year" ] || continue
-            create_meta_index "$year" "📅 $(basename $year | cut -d '-' -f2)년 TIL"
-            for month in "$year"/til-*; do
-              [ -d "$month" ] || continue
-              create_meta_index "$month" "🗓️ $(basename $year | cut -d '-' -f2)년 $(basename $month | cut -d '-' -f2)월 TIL"
+          for y in [0-9][0-9][0-9][0-9]; do
+            [ -d "$y" ] || continue
+            mv "$y" "til-$y"
+          done
+
+          for dir in til-*; do
+            [ -d "$dir" ] || continue
+            cd "$dir"
+            for m in [0-1][0-9]; do
+              [ -d "$m" ] || continue
+              mv "$m" "til-$m"
+              cd "til-$m"
+              for f in *.mdx; do
+                [ -f "$f" ] || continue
+                base=$(basename "$f" .mdx)
+                mv "$f" "til-$base.mdx"
+              done
+              cd ..
+            done
+            cd ..
+          done
+
+          cd ../../../..
+
+          create_meta_and_index "portfolio-repo/src/pages/til" "📓 TIL 소개"
+
+          for ydir in portfolio-repo/src/pages/til/til-*; do
+            [ -d "$ydir" ] || continue
+            ybase=$(basename "$ydir")
+            create_meta_and_index "$ydir" "$(localize_name "$ybase")"
+
+            for mdir in "$ydir"/til-*; do
+              [ -d "$mdir" ] || continue
+              mbase=$(basename "$mdir")
+              create_meta_and_index "$mdir" "$(localize_name "$mbase")"
             done
           done
 
+          # 태그 처리
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
           TAGS_META="$TAGS_DIR/_meta.json"
           TAGS_INDEX="$TAGS_DIR/index.mdx"
@@ -118,14 +139,13 @@ jobs:
           if [ -d "$TAGS_DIR" ]; then
             echo "{" > "$TAGS_META"
             echo '  "index": "소개",' >> "$TAGS_META"
-            cat <<EOF > "$TAGS_INDEX"
-            # 🏷️ 태그 목록
 
-            TIL의 태그별 분류입니다.
-
-            | Nextra 정리 | GitHub 바로가기 |
-            | --- | --- |
-            EOF
+            echo "# 🏷️ 태그 목록" > "$TAGS_INDEX"
+            echo "" >> "$TAGS_INDEX"
+            echo "TIL의 태그별 분류입니다." >> "$TAGS_INDEX"
+            echo "" >> "$TAGS_INDEX"
+            echo "| Nextra 정리 | GitHub 바로가기 |" >> "$TAGS_INDEX"
+            echo "| --- | --- |" >> "$TAGS_INDEX"
 
             for tag_file in "$TAGS_DIR"/*.md; do
               [ -f "$tag_file" ] || continue
@@ -133,26 +153,22 @@ jobs:
               echo "  \"$tag\": \"$tag\"," >> "$TAGS_META"
               echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
 
-              cat <<EOF > "$tag_file"
-              # $tag 태그 문서
-
-              ## 📘 Nextra 정리
-              EOF
+              echo "# $tag 태그 문서" > "$tag_file"
+              echo "" >> "$tag_file"
+              echo "## 📘 Nextra 정리" >> "$tag_file"
 
               grep -rl "tags: \[.*$tag.*\]" portfolio-repo/src/pages/til | grep .mdx | while read path; do
                 title=$(grep '^title:' "$path" | cut -d ':' -f2- | xargs)
-                rel_path=$(echo "$path" | sed 's|portfolio-repo/src/pages||' | sed 's|.mdx$||')
+                rel_path=$(echo "$path" | sed 's|portfolio-repo/src/pages||')
                 echo "- [$title]($rel_path)" >> "$tag_file"
               done
 
-              cat <<EOF >> "$tag_file"
-
-            ## 🔗 GitHub 원본
-            - [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)
-            EOF
-
+              echo "" >> "$tag_file"
+              echo "## 🔗 GitHub 원본" >> "$tag_file"
+              echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$tag_file"
             done
-            sed -i '$ s/,$//' "$TAGS_META"
+
+            sed -i '$ s/,$//' "$TAGS_META" || sed -i '' '$ s/,$//' "$TAGS_META"
             echo "}" >> "$TAGS_META"
           fi
 
@@ -161,7 +177,6 @@ jobs:
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
-
           git add .
           CHANGED_FILES=$(git diff --cached --name-only)
 
