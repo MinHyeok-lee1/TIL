@@ -69,13 +69,13 @@ jobs:
           cat <<EOF > portfolio-repo/src/pages/til/index.mdx
           # 📓 Today I Learned (TIL)
 
-          > 꿔준한 기록은 최고의 성장으로 이어진다.  
+          > 꾸준한 기록은 최고의 성장으로 이어진다.  
           개발/임베디드/도구에 대한 학습 기록을 정리합니다.
 
           ## 📅 연도별
 
           - [2025년 6월](/til/til-2025/til-06)
-          - [🍿️ 태그 목록](/til/tags)
+          - [🏷️ 태그 모음](/til/tags)
           EOF
 
           create_meta_index() {
