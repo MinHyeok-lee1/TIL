@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "**/*.md"
-  workflow_dispatch: # ✅ 수동 실행 지원
+  workflow_dispatch:
 
 jobs:
   sync-to-portfolio:
@@ -63,11 +63,11 @@ jobs:
 
             if [ -n "$folders$files" ]; then
               echo "{" > "$META_FILE"
-              echo "  \"index\": \"목차\"," >> "$META_FILE"
+              echo '  "index": { "display": "hidden" },' >> "$META_FILE"
 
               for path in $folders $files; do
                 name=$(basename "$path")
-                name="${name%.mdx}"  # remove .mdx if present
+                name="${name%.mdx}"
                 echo "  \"$name\": \"$name\"," >> "$META_FILE"
               done
 
@@ -91,26 +91,6 @@ jobs:
           done
 
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          if [ -d "$TAGS_DIR" ]; then
-            create_meta_and_index "$TAGS_DIR" "🏷️ 태그 모음"
-          fi
-
-          # ✅ til/index.mdx 내용 생성 (메인 진입점)
-          TIL_INDEX="portfolio-repo/src/pages/til/index.mdx"
-          cat <<EOF > "$TIL_INDEX"
-          # Today I Learned (TIL)
-
-          > 꾸준한 기록은 최고의 성장으로 이어진다.  
-          개발/임베디드/도구에 대한 학습 기록을 정리합니다.
-
-          ## 📅 연도별
-
-          - [2025년 6월](/til/2025/06)
-          - [🏷️ 태그 모음](/til/tags)
-          EOF
-
-          # ✅ tags index.mdx 및 _meta.json 생성
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
           TAGS_META="$TAGS_DIR/_meta.json"
           TAGS_INDEX="$TAGS_DIR/index.mdx"
 
@@ -128,7 +108,7 @@ jobs:
               tag=$(basename "$tag_file" .md)
 
               echo "  \"$tag\": \"$tag\"," >> "$TAGS_META"
-              echo "- [$tag](/til/tags/$tag.md)" >> "$TAGS_INDEX"
+              echo "- [📘 내부 보기](/til/tags/$tag)" >> "$TAGS_INDEX"
               echo "  [🔗 GitHub 원본](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$TAGS_INDEX"
               echo "" >> "$TAGS_INDEX"
             done
@@ -136,6 +116,19 @@ jobs:
             sed -i '$ s/,$//' "$TAGS_META" || sed -i '' '$ s/,$//' "$TAGS_META" || true
             echo "}" >> "$TAGS_META"
           fi
+
+          # 🔧 til/index.mdx 기본 내용 갱신
+          cat <<EOF > "portfolio-repo/src/pages/til/index.mdx"
+          # Today I Learned (TIL)
+
+          > 꾸준한 기록은 최고의 성장으로 이어진다.  
+          개발/임베디드/도구에 대한 학습 기록을 정리합니다.
+
+          ## 📅 연도별
+
+          - [2025년 6월](/til/2025/06)
+          - [🏷️ 태그 모음](/til/tags)
+          EOF
 
       - name: Commit and Push
         run: |
