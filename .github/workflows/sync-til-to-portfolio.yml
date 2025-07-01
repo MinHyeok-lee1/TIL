@@ -25,19 +25,20 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Move and Rename Directories
+      - name: Copy TIL content to Portfolio
+        run: |
+          mkdir -p portfolio-repo/src/pages/til
+          rsync -av --exclude="tags" til-repo/src/pages/til/ portfolio-repo/src/pages/til/
+
+      - name: Rename folders
         run: |
           BASE="portfolio-repo/src/pages/til"
 
-          mkdir -p "$BASE"
-
           if [ -d "$BASE/2025" ]; then
-            rm -rf "$BASE/til-2025"
             mv "$BASE/2025" "$BASE/til-2025"
           fi
 
           if [ -d "$BASE/til-2025/06" ]; then
-            rm -rf "$BASE/til-2025/til-06"
             mv "$BASE/til-2025/06" "$BASE/til-2025/til-06"
           fi
 
@@ -47,9 +48,10 @@ jobs:
             mv "$file" "${file%.md}.mdx"
           done
 
-      - name: Create index.mdx and _meta.json in all folders
+      - name: Create index.mdx and _meta.json files
         run: |
           BASE="portfolio-repo/src/pages/til"
+          mkdir -p "$BASE" "$BASE/til-2025" "$BASE/til-2025/til-06"
 
           # til/index.mdx
           cat <<EOF > "$BASE/index.mdx"
@@ -65,14 +67,8 @@ jobs:
           EOF
 
           echo '{ "index": "소개", "til-2025": "2025년 TIL" }' > "$BASE/_meta.json"
-
-          # til-2025/index.mdx
-          mkdir -p "$BASE/til-2025"
           echo -e "# 소개\n\n2025년 TIL 기록입니다." > "$BASE/til-2025/index.mdx"
           echo '{ "index": "소개", "til-06": "06월 TIL" }' > "$BASE/til-2025/_meta.json"
-
-          # til-06/index.mdx + _meta.json
-          mkdir -p "$BASE/til-2025/til-06"
           echo -e "# 소개\n\n6월의 TIL 기록입니다." > "$BASE/til-2025/til-06/index.mdx"
 
           echo '{' > "$BASE/til-2025/til-06/_meta.json"
@@ -92,7 +88,6 @@ jobs:
           TIL_DIR="portfolio-repo/src/pages/til/til-2025/til-06"
           mkdir -p "$TAGS_DIR"
 
-          # index.mdx for tags
           cat <<EOF > "$TAGS_DIR/index.mdx"
           # 🏷️ 태그 모음
 
@@ -104,8 +99,7 @@ jobs:
 
           echo '{ "index": "소개" }' > "$TAGS_DIR/_meta.json"
 
-          # Create tag-specific files
-          tags=$(grep -rh "tags:" "$TIL_DIR" | sed -E 's/.*tags: \[(.*)\].*/\1/' | tr ',' '\n' | sed 's/[][]//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u)
+          tags=$(grep -h "tags:" "$TIL_DIR"/*.mdx | sed -E 's/.*tags: \[(.*)\]/\1/' | tr ',' '\n' | sed 's/[][]//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u)
 
           for tag in $tags; do
             tag_file="$TAGS_DIR/$tag.mdx"
