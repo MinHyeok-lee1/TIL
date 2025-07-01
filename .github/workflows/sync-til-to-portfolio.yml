@@ -63,7 +63,11 @@ jobs:
                 name=$(basename "$folder")
                 echo "  \"$name\": \"$name\"," >> "$META_FILE"
               done
-              sed -i '' '$ s/,$//' "$META_FILE"  # 마지막 쉼표 제거 (macOS 대응)
+              if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' '$ s/,$//' "$META_FILE"
+              else
+                sed -i '$ s/,$//' "$META_FILE"
+              fi
               echo "}" >> "$META_FILE"
             fi
           }
