@@ -41,6 +41,11 @@ jobs:
             mv "til-2025/06" "til-2025/til-06"
           fi
 
+      - name: Ensure directory structure exists
+        run: |
+          mkdir -p portfolio-repo/src/pages/til/til-2025/til-06
+          mkdir -p portfolio-repo/src/pages/til/tags
+
       - name: Convert .md to .mdx
         run: |
           find portfolio-repo/src/pages/til -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
