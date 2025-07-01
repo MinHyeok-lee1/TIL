@@ -44,54 +44,56 @@ jobs:
         run: |
           echo "📁 Generating _meta.json and index.mdx files..."
 
-          # 📌 label 변환 함수
-          get_label() {
-            case "$1" in
-              index) echo "목차" ;;
-              tags) echo "태그 모음" ;;
-              01) echo "1월 TIL" ;; 02) echo "2월 TIL" ;;
-              03) echo "3월 TIL" ;; 04) echo "4월 TIL" ;;
-              05) echo "5월 TIL" ;; 06) echo "6월 TIL" ;;
-              07) echo "7월 TIL" ;; 08) echo "8월 TIL" ;;
-              09) echo "9월 TIL" ;; 10) echo "10월 TIL" ;;
-              11) echo "11월 TIL" ;; 12) echo "12월 TIL" ;;
-              202[0-9]) echo "$1 TIL" ;;
-              *) echo "$1" ;;
-            esac
-          }
+          create_meta_and_index() {
+            DIR=$1
+            TITLE=$2
+            INDEX_FILE="$DIR/index.mdx"
+            META_FILE="$DIR/_meta.json"
 
-          # 🔁 _meta.json과 index.mdx 전체 경로 재순회
-          find portfolio-repo/src/pages/til -type d | while read dir; do
-            INDEX_FILE="$dir/index.mdx"
-            META_FILE="$dir/_meta.json"
-            DIRNAME=$(basename "$dir")
-            LABEL=$(get_label "$DIRNAME")
+            mkdir -p "$DIR"
 
-            # ✅ index.mdx 생성
             if [ ! -f "$INDEX_FILE" ]; then
-              echo "# 📘 $LABEL" > "$INDEX_FILE"
+              echo "# $TITLE" > "$INDEX_FILE"
               echo "" >> "$INDEX_FILE"
-              echo "$LABEL 페이지입니다." >> "$INDEX_FILE"
+              echo "$TITLE 페이지입니다." >> "$INDEX_FILE"
             fi
 
-            # ✅ _meta.json 생성
-            subdirs=$(find "$dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
-            files=$(find "$dir" -maxdepth 1 -type f -name "*.mdx" -exec basename {} .mdx \; | grep -v "^index$")
+            folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
+            files=$(find "$DIR" -mindepth 1 -maxdepth 1 -type f -name '*.mdx' ! -name 'index.mdx' | sort || true)
 
-            {
-              echo "{"
-              echo "  \"index\": \"목차\","
-              for folder in $subdirs; do
-                label=$(get_label "$folder")
-                echo "  \"$folder\": \"$label\","
+            if [ -n "$folders$files" ]; then
+              echo "{" > "$META_FILE"
+              echo "  \"index\": \"목차\"," >> "$META_FILE"
+
+              for path in $folders $files; do
+                name=$(basename "$path")
+                name="${name%.mdx}"  # remove .mdx if present
+                echo "  \"$name\": \"$name\"," >> "$META_FILE"
               done
-              for file in $files; do
-                label=$(get_label "$file")
-                echo "  \"$file\": \"$label\","
-              done
-            } | sed '$!s/,$//' > "$META_FILE"
-            echo "}" >> "$META_FILE"
+
+              sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE" || true
+              echo "}" >> "$META_FILE"
+            fi
+          }
+
+          create_meta_and_index "portfolio-repo/src/pages/til" "📚 TIL 모음"
+
+          for year_dir in portfolio-repo/src/pages/til/[0-9][0-9][0-9][0-9]; do
+            [ -d "$year_dir" ] || continue
+            year=$(basename "$year_dir")
+            create_meta_and_index "$year_dir" "📅 ${year}년 TIL"
+
+            for month_dir in "$year_dir"/*; do
+              [ -d "$month_dir" ] || continue
+              month=$(basename "$month_dir")
+              create_meta_and_index "$month_dir" "🗓️ ${year}년 ${month}월 TIL"
+            done
           done
+
+          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          if [ -d "$TAGS_DIR" ]; then
+            create_meta_and_index "$TAGS_DIR" "🏷️ 태그 모음"
+          fi
 
       - name: Commit and Push
         run: |
