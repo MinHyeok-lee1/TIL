@@ -39,7 +39,7 @@ jobs:
             YEAR=$(basename "$YEAR_PATH")
             mv "$YEAR_PATH" "portfolio-repo/src/pages/til/til-$YEAR"
             for MONTH_PATH in portfolio-repo/src/pages/til/til-$YEAR/*; do
-              [ -d "$MONTH_PATH" ] || continue  # 디렉토리만 처리
+              [ -d "$MONTH_PATH" ] || continue
               MONTH=$(basename "$MONTH_PATH")
               mv "$MONTH_PATH" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
             done
@@ -55,7 +55,7 @@ jobs:
           mkdir -p "$BASE"
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
-          echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
+          echo '  "tags": "태그 모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
@@ -63,6 +63,7 @@ jobs:
           > 꾸준한 기록은 최고의 성장으로 이어진다.
 
           ## 📅 연도별
+
           EOF
 
           echo "- [🏷️ 태그 모음](/til/tags)" >> "$BASE/index.mdx"
@@ -135,7 +136,7 @@ jobs:
             for FILE in portfolio-repo/src/pages/til/til-*/til-*/*.mdx; do
               FNAME=$(basename "$FILE" .mdx)
               [ "$FNAME" = "index" ] && continue
-              if grep -q "$TAG" "$FILE"; then
+              if grep -q "tags:.*\b$TAG\b" "$FILE"; then
                 YM=$(echo "$FILE" | grep -o 'til-[0-9]*/til-[0-9]*')
                 TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
                 echo "| $TITLE | [Nextra 바로가기](/til/$YM/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/${YM/til-/}/$FNAME.md) |" >> "$TAG_FILE"
@@ -143,7 +144,6 @@ jobs:
             done
 
             echo "| $TAG | [Nextra 바로가기](/til/tags/$TAG) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$TAG.md) |" >> "$TAGS_DIR/index.mdx"
-          done
 
       - name: Commit and Push
         run: |
