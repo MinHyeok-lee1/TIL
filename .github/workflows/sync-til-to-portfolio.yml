@@ -27,24 +27,19 @@ jobs:
 
       - name: Move and Rename Directories
         run: |
-          cd portfolio-repo/src/pages/til
+          BASE="portfolio-repo/src/pages/til"
 
-          # Rename year folder
-          if [ -d "2025" ]; then
-            rm -rf "til-2025"
-            mv "2025" "til-2025"
+          mkdir -p "$BASE"
+
+          if [ -d "$BASE/2025" ]; then
+            rm -rf "$BASE/til-2025"
+            mv "$BASE/2025" "$BASE/til-2025"
           fi
 
-          # Rename month folder inside year folder
-          if [ -d "til-2025/06" ]; then
-            rm -rf "til-2025/til-06"
-            mv "til-2025/06" "til-2025/til-06"
+          if [ -d "$BASE/til-2025/06" ]; then
+            rm -rf "$BASE/til-2025/til-06"
+            mv "$BASE/til-2025/06" "$BASE/til-2025/til-06"
           fi
-
-      - name: Ensure directory structure exists
-        run: |
-          mkdir -p portfolio-repo/src/pages/til/til-2025/til-06
-          mkdir -p portfolio-repo/src/pages/til/tags
 
       - name: Convert .md to .mdx
         run: |
