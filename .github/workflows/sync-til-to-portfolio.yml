@@ -40,107 +40,112 @@ jobs:
             mv "$file" "${file%.md}.mdx"
           done
 
-      - name: Create _meta.json and index.mdx files
+      - name: Generate _meta.json and index.mdx files
         run: |
           echo "📁 Generating _meta.json and index.mdx files..."
+
+          title_case() {
+            echo "$1" | sed -E 's/(^|-)([a-z])|\b([0-9]{2})\b/\U\2\U\3/g'
+          }
 
           create_meta_and_index() {
             DIR=$1
             TITLE=$2
-            META_FILE="$DIR/_meta.json"
             INDEX_FILE="$DIR/index.mdx"
+            META_FILE="$DIR/_meta.json"
 
             mkdir -p "$DIR"
-
-            if [ ! -f "$INDEX_FILE" ]; then
-              echo "# $TITLE" > "$INDEX_FILE"
-              echo "" >> "$INDEX_FILE"
-              echo "$TITLE 페이지입니다." >> "$INDEX_FILE"
-            fi
 
             folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
             files=$(find "$DIR" -mindepth 1 -maxdepth 1 -type f -name '*.mdx' ! -name 'index.mdx' | sort || true)
 
             if [ -n "$folders$files" ]; then
               echo "{" > "$META_FILE"
-              echo "  \"index\": \"\uc18d\uac00\"," >> "$META_FILE"
+              echo "  \"index\": \"$TITLE\"," >> "$META_FILE"
 
               for path in $folders $files; do
                 name=$(basename "$path")
-                key="$name"
-                if [[ $name == 20* ]]; then
-                  key="til-$name"
-                elif [[ $name =~ ^[0-9][0-9]$ ]]; then
-                  key="til-$name"
-                else
-                  key="${name%.mdx}"
-                fi
-
+                key="${name%.mdx}"
                 label="$key"
-                label=${label//til-/}
 
-                if [[ $label =~ ^20[0-9][0-9]$ ]]; then
-                  label="${label}년 TIL"
-                elif [[ $label =~ ^[0-9][0-9]$ ]]; then
-                  label="${label}\uc6d4 TIL"
-                else
-                  label="$label"
+                if [[ "$key" =~ ^[0-9]{2}- ]]; then
+                  day="${key%%-*}"
+                  tag="${key#*-}"
+                  label="${day}일 $(title_case "$tag")"
+                elif [[ "$key" =~ ^til-[0-9]{2}$ ]]; then
+                  label="${key#til-}월 TIL"
+                elif [[ "$key" =~ ^til-[0-9]{4}$ ]]; then
+                  label="${key#til-}년 TIL"
                 fi
 
                 echo "  \"$key\": \"$label\"," >> "$META_FILE"
               done
-
-              sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE" || true
+              sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE"
               echo "}" >> "$META_FILE"
+            fi
+
+            # index.mdx 생성 (필요시만)
+            if [ ! -f "$INDEX_FILE" ]; then
+              echo "# $TITLE" > "$INDEX_FILE"
+              echo "" >> "$INDEX_FILE"
+              echo "$TITLE 페이지입니다." >> "$INDEX_FILE"
             fi
           }
 
-          ROOT_DIR="portfolio-repo/src/pages/til"
+          # til 루트 소개 페이지는 고정 생성
+          TIL_INDEX="portfolio-repo/src/pages/til/index.mdx"
+          cat <<EOF > "$TIL_INDEX"
+          # Today I Learned (TIL)
 
-          create_meta_and_index "$ROOT_DIR" "📚 TIL 목차"
+          > 꽤준한 기록은 최고의 성장으로 이어진다.  
+          개발/임베디드/도구에 대한 학습 기록을 정리합니다.
 
-          for year_dir in $ROOT_DIR/[0-9][0-9][0-9][0-9]; do
+          ## 📅 연도별
+
+          - [🏃‍️태그 목록](/til/tags)
+          - [2025년 TIL](/til/til-2025)
+          EOF
+
+          # til 루트 _meta.json
+          echo '{"index": "소개", "til-2025": "2025년 TIL", "tags": "태그 목록"}' > portfolio-repo/src/pages/til/_meta.json
+
+          # 연도/월 별 생성
+          for year_dir in portfolio-repo/src/pages/til/[0-9][0-9][0-9][0-9]; do
             [ -d "$year_dir" ] || continue
             year=$(basename "$year_dir")
-            year_folder="$ROOT_DIR/til-$year"
-            mv "$year_dir" "$year_folder"
-            create_meta_and_index "$year_folder" "📅 ${year}년 TIL"
+            year_path="portfolio-repo/src/pages/til/til-$year"
+            mv "$year_dir" "$year_path"
+            create_meta_and_index "$year_path" "📅 $year년 TIL"
 
-            for month_dir in "$year_folder"/*; do
+            for month_dir in "$year_path"/*; do
               [ -d "$month_dir" ] || continue
               month=$(basename "$month_dir")
-              new_month_folder="$year_folder/til-$month"
-              mv "$month_dir" "$new_month_folder"
-              create_meta_and_index "$new_month_folder" "🗓️ ${year}년 ${month}월 TIL"
+              new_month_path="$year_path/til-$month"
+              mv "$month_dir" "$new_month_path"
+              create_meta_and_index "$new_month_path" "🗓️ $year년 ${month}월 TIL"
             done
           done
 
-          TAGS_DIR="$ROOT_DIR/tags"
+          # tags index + meta
+          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          TAGS_META="$TAGS_DIR/_meta.json"
+          TAGS_INDEX="$TAGS_DIR/index.mdx"
+
           if [ -d "$TAGS_DIR" ]; then
-            create_meta_and_index "$TAGS_DIR" "🎟️ 태그 목록"
-
-            META_FILE="$TAGS_DIR/_meta.json"
-            INDEX_FILE="$TAGS_DIR/index.mdx"
-
-            echo "{" > "$META_FILE"
-            echo '  "index": "\uc18d\uac00",' >> "$META_FILE"
-
-            echo "# 🎟️ 태그 \ubaa9\ub85d" > "$INDEX_FILE"
-            echo "" >> "$INDEX_FILE"
-            echo "TIL의 태그별 분류입니다. GitHub 원본과 Nextra 정리를 모두 제공합니다." >> "$INDEX_FILE"
-            echo "" >> "$INDEX_FILE"
-            echo "| 태그 | Nextra 정리 | GitHub 원본 |" >> "$INDEX_FILE"
-            echo "|---|---|---|" >> "$INDEX_FILE"
+            echo "{\n  \"index\": \"\ud0dc\uadf8 \ubaa9\ub85d\"" > "$TAGS_META"
+            echo "# 🍿️ 태그 목록" > "$TAGS_INDEX"
+            echo "" >> "$TAGS_INDEX"
+            echo "| 태그 | Nextra 정리 | GitHub 바로가기 |" >> "$TAGS_INDEX"
+            echo "|------|---------------|------------------|" >> "$TAGS_INDEX"
 
             for tag_file in "$TAGS_DIR"/*.md; do
               [ -f "$tag_file" ] || continue
               tag=$(basename "$tag_file" .md)
-              echo "  \"$tag\": \"$tag\"," >> "$META_FILE"
-              echo "| $tag | [📘 내보기](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$INDEX_FILE"
-            done
 
-            sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE" || true
-            echo "}" >> "$META_FILE"
+              echo "  ,\"$tag\": \"$tag\"" >> "$TAGS_META"
+              echo "| $tag | [Nextra 정리](/til/tags/$tag.md) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
+            done
+            echo "}" >> "$TAGS_META"
           fi
 
       - name: Commit and Push
@@ -168,5 +173,6 @@ jobs:
           $FILE_LIST
           EOF
           )
+
           git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
           git push || { echo "⚠️ Git push failed"; exit 1; }
