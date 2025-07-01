@@ -25,151 +25,154 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Copy TIL files including tags
+      - name: Sync TIL with til- prefix structure
         run: |
-          mkdir -p portfolio-repo/src/pages/til/
-          rsync -av --delete \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude 'README.md' \
-            til-repo/ portfolio-repo/src/pages/til/
+          set -e
 
-      - name: Convert .md to .mdx (excluding tags/)
-        run: |
+          mkdir -p portfolio-repo/src/pages/til/
+
+          echo "📁 Copying TIL files with prefix..."
+          rsync -av --delete             --exclude '.git/'             --exclude '.github/'             --exclude 'README.md'             til-repo/ portfolio-repo/src/pages/til/
+
           find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
             mv "$file" "${file%.md}.mdx"
           done
 
-      - name: Generate _meta.json, index.mdx and tag contents
-        run: |
-          echo "📁 Generating _meta.json, index.mdx and tag contents..."
-
-          TIL_DIR="portfolio-repo/src/pages/til"
-
-          rm -rf "$TIL_DIR/20*"
+          echo "📁 Generating _meta.json and index.mdx files..."
 
           localize_name() {
             case "$1" in
-              til-2025) echo "2025년 TIL";;
-              til-06) echo "06월 TIL";;
-              til-07) echo "07월 TIL";;
-              til-24-*) echo "24일 ${1#til-24-}";;
-              til-25-*) echo "25일 ${1#til-25-}";;
-              til-26-*) echo "26일 ${1#til-26-}";;
-              *) echo "$1";;
+              til-2025) echo "2025년 TIL" ;;
+              til-06) echo "06월 TIL" ;;
+              til-07) echo "07월 TIL" ;;
+              til-08) echo "08월 TIL" ;;
+              *) echo "$1" ;;
             esac
+          }
+
+          get_day_title() {
+            file="$1"
+            title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
+            date_part=$(basename "$file" .mdx)
+            day=${date_part%%-*}
+            echo "${day}일 ${title}"
           }
 
           create_meta_and_index() {
             DIR=$1
-            TITLE=$2
-            INDEX_FILE="$DIR/index.mdx"
             META_FILE="$DIR/_meta.json"
+            INDEX_FILE="$DIR/index.mdx"
+            TITLE="$2"
 
-            mkdir -p "$DIR"
             echo "# $TITLE" > "$INDEX_FILE"
-            echo >> "$INDEX_FILE"
-            echo "$TITLE 페이지입니다." >> "$INDEX_FILE"
+            echo "" >> "$INDEX_FILE"
+            echo "$TITLE 소개 페이지입니다." >> "$INDEX_FILE"
+
+            folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
+            files=$(find "$DIR" -mindepth 1 -maxdepth 1 -type f -name '*.mdx' ! -name 'index.mdx' | sort || true)
 
             echo "{" > "$META_FILE"
             echo '  "index": "소개",' >> "$META_FILE"
 
-            for entry in "$DIR"/*; do
-              name=$(basename "$entry")
-              case "$name" in
-                index.mdx|_meta.json) continue;;
-              esac
-              key="${name%.mdx}"
-              label=$(localize_name "$key")
-              echo "  \"$key\": \"$label\"," >> "$META_FILE"
+            for path in $folders; do
+              name=$(basename "$path")
+              label=$(localize_name "$name")
+              echo "  "$name": "$label"," >> "$META_FILE"
+            done
+
+            for file in $files; do
+              name=$(basename "$file" .mdx)
+              label=$(get_day_title "$file")
+              echo "  "$name": "$label"," >> "$META_FILE"
             done
 
             sed -i '$ s/,$//' "$META_FILE" || sed -i '' '$ s/,$//' "$META_FILE"
             echo "}" >> "$META_FILE"
           }
 
-          # til/index.mdx 고정 생성
-          TIL_INDEX="$TIL_DIR/index.mdx"
-          cat <<EOF > "$TIL_INDEX"
-          # Today I Learned (TIL)
+          # cleanup and prefix renaming
+          cd portfolio-repo/src/pages/til
 
-          > 꾸준한 기록은 최고의 성장으로 이어진다.  
-          개발/임베디드/도구에 대한 학습 기록을 정리합니다.
-
-          ## 📅 연도별
-
-          - [🏷️ 태그 모음](/til/tags)
-          - [2025년 TIL](/til/til-2025)
-          EOF
-
-          create_meta_and_index "$TIL_DIR" "📚 TIL 모음"
-
-          # til 구조 반영 (연도/월/일)
-          for year_dir in til-repo/[0-9][0-9][0-9][0-9]; do
+          for year_dir in [0-9][0-9][0-9][0-9]; do
             [ -d "$year_dir" ] || continue
-            year=$(basename "$year_dir")
-            target_year_dir="$TIL_DIR/til-$year"
-            mkdir -p "$target_year_dir"
+            mv "$year_dir" "til-$year_dir"
+          done
 
-            for month_dir in "$year_dir"/*; do
+          for dir in til-*; do
+            [ -d "$dir" ] || continue
+            cd "$dir"
+            for month_dir in [0-1][0-9]; do
               [ -d "$month_dir" ] || continue
-              month=$(basename "$month_dir")
-              target_month_dir="$target_year_dir/til-$month"
-              mkdir -p "$target_month_dir"
-
-              for file in "$month_dir"/*.md; do
+              mv "$month_dir" "til-$month_dir"
+              cd "til-$month_dir"
+              for file in *.mdx; do
                 [ -f "$file" ] || continue
-                base=$(basename "$file" .md)
-                title=$(awk -F': ' '/^title:/ {print $2}' "$file")
-                slug="til-${base,,}"
-                cp "$file" "$target_month_dir/$slug.mdx"
-                echo "# $title" > "$target_month_dir/$slug.mdx"
+                base=$(basename "$file" .mdx)
+                mv "$file" "til-$base.mdx"
+              done
+              cd ..
+            done
+            cd ..
+          done
+
+          cd ../../../..
+
+          create_meta_and_index "portfolio-repo/src/pages/til" "📚 TIL 소개"
+
+          for year_dir in portfolio-repo/src/pages/til/til-*; do
+            [ -d "$year_dir" ] || continue
+            year_name=$(basename "$year_dir")
+            create_meta_and_index "$year_dir" "$(localize_name "$year_name")"
+
+            for month_dir in "$year_dir"/til-*; do
+              [ -d "$month_dir" ] || continue
+              month_name=$(basename "$month_dir")
+              create_meta_and_index "$month_dir" "$(localize_name "$month_name")"
+            done
+          done
+
+          # TAGS
+          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          TAGS_META="$TAGS_DIR/_meta.json"
+          TAGS_INDEX="$TAGS_DIR/index.mdx"
+
+          if [ -d "$TAGS_DIR" ]; then
+            echo "{" > "$TAGS_META"
+            echo '  "index": "소개",' >> "$TAGS_META"
+            echo "# 🏷️ 태그 목록" > "$TAGS_INDEX"
+            echo "" >> "$TAGS_INDEX"
+            echo "TIL의 태그별 분류입니다." >> "$TAGS_INDEX"
+            echo "" >> "$TAGS_INDEX"
+            echo "| Nextra 정리 | GitHub 바로가기 |" >> "$TAGS_INDEX"
+            echo "| --- | --- |" >> "$TAGS_INDEX"
+
+            for tag_file in "$TAGS_DIR"/*.md; do
+              [ -f "$tag_file" ] || continue
+              tag=$(basename "$tag_file" .md)
+              echo "  "$tag": "$tag"," >> "$TAGS_META"
+              echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
+
+              # 태그 본문 생성
+              TAG_FILE_PATH="$tag_file"
+              echo "# $tag 태그 문서" > "$TAG_FILE_PATH"
+              echo "" >> "$TAG_FILE_PATH"
+              echo "## 📘 Nextra 정리" >> "$TAG_FILE_PATH"
+
+              grep -rl "tags: \[.*$tag.*\]" portfolio-repo/src/pages/til | grep .mdx | while read path; do
+                file=$(basename "$path" .mdx)
+                rel_path=$(echo "$path" | sed 's|portfolio-repo/src/pages||')
+                title=$(grep '^title:' "$path" | cut -d ':' -f2- | xargs)
+                echo "- [$title]($rel_path)" >> "$TAG_FILE_PATH"
               done
 
-              create_meta_and_index "$target_month_dir" "🗓️ ${year}년 ${month}월 TIL"
+              echo "" >> "$TAG_FILE_PATH"
+              echo "## 🔗 GitHub 원본" >> "$TAG_FILE_PATH"
+              echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$TAG_FILE_PATH"
             done
 
-            create_meta_and_index "$target_year_dir" "📅 ${year}년 TIL"
-          done
-
-          # tags index 생성
-          TAGS_DIR="$TIL_DIR/tags"
-          mkdir -p "$TAGS_DIR"
-          TAGS_INDEX="$TAGS_DIR/index.mdx"
-          TAGS_META="$TAGS_DIR/_meta.json"
-
-          echo "# 🏷️ 태그 목록" > "$TAGS_INDEX"
-          echo >> "$TAGS_INDEX"
-          echo "| 태그 | Nextra 정리 | GitHub 바로가기 |" >> "$TAGS_INDEX"
-          echo "|------|----------------|------------------|" >> "$TAGS_INDEX"
-
-          echo '{' > "$TAGS_META"
-          echo '  "index": "소개",' >> "$TAGS_META"
-
-          for tag_file in til-repo/tags/*.md; do
-            [ -f "$tag_file" ] || continue
-            tag=$(basename "$tag_file" .md)
-            echo "  \"$tag\": \"$tag\"," >> "$TAGS_META"
-
-            echo "# $tag 태그 문서" > "$TAGS_DIR/$tag.mdx"
-            echo >> "$TAGS_DIR/$tag.mdx"
-            echo "## 📘 Nextra 정리" >> "$TAGS_DIR/$tag.mdx"
-
-            grep -rl "$tag" "$TIL_DIR/til-2025" | grep .mdx | while read f; do
-              label=$(awk -F'# ' '/^# / {print $2; exit}' "$f")
-              link="${f#portfolio-repo/src/pages}" # strip path
-              echo "- [$label]($link)" >> "$TAGS_DIR/$tag.mdx"
-            done
-
-            echo >> "$TAGS_DIR/$tag.mdx"
-            echo "## 🔗 GitHub 원본" >> "$TAGS_DIR/$tag.mdx"
-            echo "- [GitHub로 보기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md)" >> "$TAGS_DIR/$tag.mdx"
-
-            echo "| $tag | [바로가기](/til/tags/$tag) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
-          done
-
-          sed -i '$ s/,$//' "$TAGS_META" || sed -i '' '$ s/,$//' "$TAGS_META"
-          echo "}" >> "$TAGS_META"
+            sed -i '$ s/,$//' "$TAGS_META" || sed -i '' '$ s/,$//' "$TAGS_META"
+            echo "}" >> "$TAGS_META"
+          fi
 
       - name: Commit and Push
         run: |
