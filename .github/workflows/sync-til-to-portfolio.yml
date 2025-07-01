@@ -40,19 +40,54 @@ jobs:
             mv "$file" "${file%.md}.mdx"
           done
 
-      - name: Generate _meta.json (excluding tags/)
+      - name: Create _meta.json and index.mdx files
         run: |
-          find portfolio-repo/src/pages/til -type d ! -path "*/tags*" | while read dir; do
-            files=$(find "$dir" -maxdepth 1 -name "*.mdx" -exec basename {} .mdx \;)
-            if [ -n "$files" ]; then
-              echo "{" > "$dir/_meta.json"
-              for f in $files; do
-                echo "  \"$f\": \"$f\"," >> "$dir/_meta.json"
-              done
-              sed -i '$ s/,$//' "$dir/_meta.json"
-              echo "}" >> "$dir/_meta.json"
+          echo "📁 Generating _meta.json and index.mdx files..."
+
+          create_meta_and_index() {
+            DIR=$1
+            TITLE=$2
+            INDEX_FILE="$DIR/index.mdx"
+            META_FILE="$DIR/_meta.json"
+
+            if [ ! -f "$INDEX_FILE" ]; then
+              echo "# $TITLE" > "$INDEX_FILE"
+              echo "" >> "$INDEX_FILE"
+              echo "$TITLE 페이지입니다." >> "$INDEX_FILE"
             fi
+
+            entries=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d | sort)
+            if [ -n "$entries" ]; then
+              echo "{" > "$META_FILE"
+              for folder in $entries; do
+                name=$(basename "$folder")
+                echo "  \"$name\": \"$name\"," >> "$META_FILE"
+              done
+              sed -i '' '$ s/,$//' "$META_FILE"  # 마지막 쉼표 제거 (macOS 대응)
+              echo "}" >> "$META_FILE"
+            fi
+          }
+
+          create_meta_and_index "portfolio-repo/src/pages/til" "📚 TIL 모음"
+
+          for year_dir in portfolio-repo/src/pages/til/[0-9][0-9][0-9][0-9]; do
+            [ -d "$year_dir" ] || continue
+            year=$(basename "$year_dir")
+            create_meta_and_index "$year_dir" "📅 ${year}년 TIL"
+
+            for month_dir in "$year_dir"/*; do
+              [ -d "$month_dir" ] || continue
+              month=$(basename "$month_dir")
+              create_meta_and_index "$month_dir" "🗓️ ${year}년 ${month}월 TIL"
+            done
           done
+
+          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          if [ -d "$TAGS_DIR" ] && [ ! -f "$TAGS_DIR/index.mdx" ]; then
+            echo "# 🏷️ 태그 목록" > "$TAGS_DIR/index.mdx"
+            echo "" >> "$TAGS_DIR/index.mdx"
+            echo "TIL의 태그별 분류입니다." >> "$TAGS_DIR/index.mdx"
+          fi
 
       - name: Commit and Push
         run: |
