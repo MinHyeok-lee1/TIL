@@ -27,22 +27,22 @@ jobs:
 
       - name: Copy TIL files including tags
         run: |
-          mkdir -p portfolio-repo/pages/til/
+          mkdir -p portfolio-repo/src/pages/til/
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude 'README.md' \
-            til-repo/ portfolio-repo/pages/til/
+            til-repo/ portfolio-repo/src/pages/til/
 
       - name: Convert .md to .mdx (excluding tags/)
         run: |
-          find portfolio-repo/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
+          find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
             mv "$file" "${file%.md}.mdx"
           done
 
       - name: Generate _meta.json (excluding tags/)
         run: |
-          find portfolio-repo/pages/til -type d ! -path "*/tags*" | while read dir; do
+          find portfolio-repo/src/pages/til -type d ! -path "*/tags*" | while read dir; do
             files=$(find "$dir" -maxdepth 1 -name "*.mdx" -exec basename {} .mdx \;)
             if [ -n "$files" ]; then
               echo "{" > "$dir/_meta.json"
