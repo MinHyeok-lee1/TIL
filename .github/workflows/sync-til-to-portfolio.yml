@@ -57,7 +57,7 @@ jobs:
           - [2025년 TIL](/til/til-2025)
           EOF
 
-          echo '{ "index": "소개", "til-2025": "2025년 TIL" }' > "$BASE/_meta.json"
+          echo '{ "index": "소개", "til-2025": "2025년 TIL", "tags": "태그모음" }' > "$BASE/_meta.json"
 
           # til-2025 index
           echo "# 소개" > "$BASE/til-2025/index.mdx"
@@ -83,9 +83,10 @@ jobs:
           for file in "$BASE/til-2025/til-06"/*.mdx; do
             fname=$(basename "$file" .mdx)
             title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
-            echo "| $title | [/til/til-2025/til-06/$fname]($fname) | [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$BASE/til-2025/til-06/index.mdx"
+            echo "| $title | Nextra 바로가기 | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$BASE/til-2025/til-06/index.mdx"
             echo ", \"$fname\": \"$title\"" >> "$BASE/til-2025/til-06/_meta.json"
           done
+
           echo "}" >> "$BASE/til-2025/til-06/_meta.json"
 
       - name: Convert tags and generate tag index
@@ -117,11 +118,11 @@ jobs:
                 title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
                 nextra="/til/til-2025/til-06/$fname"
                 github="https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md"
-                echo "| $title | [$nextra]($nextra) | [GitHub]($github) |" >> "$md"
+                echo "| $title | Nextra 바로가기 | [GitHub 바로가기]($github) |" >> "$md"
               fi
             done
 
-            echo "| $tag_title | [/til/tags/$tag](/til/tags/$tag) | [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $tag_title | Nextra 바로가기 | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
