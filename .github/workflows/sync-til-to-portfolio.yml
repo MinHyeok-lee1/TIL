@@ -34,7 +34,10 @@ jobs:
       - name: Rename folders to til-xxxx
         run: |
           mv portfolio-repo/src/pages/til/2025 portfolio-repo/src/pages/til/til-2025
-          mv portfolio-repo/src/pages/til/til-2025/06 portfolio-repo/src/pages/til/til-2025/til-06
+          for month in portfolio-repo/src/pages/til/til-2025/*; do
+            name=$(basename "$month")
+            mv "$month" "portfolio-repo/src/pages/til/til-2025/til-$name"
+          done
 
       - name: Convert all .md to .mdx
         run: |
@@ -43,7 +46,7 @@ jobs:
       - name: Create index.mdx and _meta.json
         run: |
           BASE="portfolio-repo/src/pages/til"
-          mkdir -p "$BASE" "$BASE/til-2025" "$BASE/til-2025/til-06"
+          mkdir -p "$BASE"
 
           # til/index.mdx
           cat <<EOF > "$BASE/index.mdx"
@@ -60,68 +63,78 @@ jobs:
           echo '{ "index": "소개", "til-2025": "2025년 TIL", "tags": "태그모음" }' > "$BASE/_meta.json"
 
           # til-2025 index
+          mkdir -p "$BASE/til-2025"
           echo "# 소개" > "$BASE/til-2025/index.mdx"
           echo "" >> "$BASE/til-2025/index.mdx"
           echo "2025년 TIL 기록입니다." >> "$BASE/til-2025/index.mdx"
           echo "" >> "$BASE/til-2025/index.mdx"
-          echo "| 월 | 링크 |" >> "$BASE/til-2025/index.mdx"
-          echo "|----|------|" >> "$BASE/til-2025/index.mdx"
-          echo "| 06월 | [til-06 바로가기](/til/til-2025/til-06) |" >> "$BASE/til-2025/index.mdx"
+          echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$BASE/til-2025/index.mdx"
+          echo "|----|------------------|------------------|" >> "$BASE/til-2025/index.mdx"
 
-          echo '{ "index": "소개", "til-06": "06월 TIL" }' > "$BASE/til-2025/_meta.json"
+          echo '{ "index": "소개"' > "$BASE/til-2025/_meta.json"
 
-          # til-06 index + meta
-          echo "# 소개" > "$BASE/til-2025/til-06/index.mdx"
-          echo "" >> "$BASE/til-2025/til-06/index.mdx"
-          echo "6월의 TIL 기록입니다." >> "$BASE/til-2025/til-06/index.mdx"
-          echo "" >> "$BASE/til-2025/til-06/index.mdx"
-          echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$BASE/til-2025/til-06/index.mdx"
-          echo "|-------|------------------|------------------|" >> "$BASE/til-2025/til-06/index.mdx"
+          for folder in "$BASE/til-2025"/til-*; do
+            month=$(basename "$folder")
+            month_num=$(echo "$month" | cut -d'-' -f2)
+            echo "| ${month_num}월 | [/til/til-2025/$month](/til/til-2025/$month) | [GitHub](https://github.com/MinHyeok-lee1/TIL/tree/main/2025/$month_num) |" >> "$BASE/til-2025/index.mdx"
+            echo ", "$month": "${month_num}월 TIL"" >> "$BASE/til-2025/_meta.json"
 
-          echo '{ "index": "소개"' > "$BASE/til-2025/til-06/_meta.json"
+            # til-XX index
+            echo "# 소개" > "$folder/index.mdx"
+            echo "" >> "$folder/index.mdx"
+            echo "${month_num}월의 TIL 기록입니다." >> "$folder/index.mdx"
+            echo "" >> "$folder/index.mdx"
+            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$folder/index.mdx"
+            echo "|-------|------------------|------------------|" >> "$folder/index.mdx"
 
-          for file in "$BASE/til-2025/til-06"/*.mdx; do
-            fname=$(basename "$file" .mdx)
-            [ "$fname" = "index" ] && continue
-            title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
-            echo "| $title | [Nextra 바로가기](/til/til-2025/til-06/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$BASE/til-2025/til-06/index.mdx"
-            echo ", \"$fname\": \"$title\"" >> "$BASE/til-2025/til-06/_meta.json"
+            echo '{ "index": "소개"' > "$folder/_meta.json"
+
+            for file in "$folder"/*.mdx; do
+              fname=$(basename "$file" .mdx)
+              [ "$fname" = "index" ] && continue
+              title=$(echo "${fname:3}" | sed 's/-/ /g')
+              day=$(echo "$fname" | cut -d'-' -f1)
+              echo "| ${day}일 $title | [Nextra 바로가기](/til/til-2025/$month/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/$month_num/$fname.md) |" >> "$folder/index.mdx"
+              echo ", "$fname": "${day}일 $title"" >> "$folder/_meta.json"
+            done
+            echo "}" >> "$folder/_meta.json"
           done
-
-          echo "}" >> "$BASE/til-2025/til-06/_meta.json"
 
       - name: Convert tags and generate tag index
         run: |
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          TIL_DIR="portfolio-repo/src/pages/til/til-2025/til-06"
+          TIL_DIR="portfolio-repo/src/pages/til/til-2025"
 
           mkdir -p "$TAGS_DIR"
-          echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
+          echo "# 소개" > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
-          echo "주요 태그별 TIL 모음입니다. 각 항목을 클릭하면 세부 내용을 볼 수 있습니다." >> "$TAGS_DIR/index.mdx"
+          echo "TIL 태그 모음입니다." >> "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
 
-          echo '{ "index": "태그 모음" }' > "$TAGS_DIR/_meta.json"
+          echo '{ "index": "소개" }' > "$TAGS_DIR/_meta.json"
 
-          for md in "$TAGS_DIR"/*.mdx; do
-            tag=$(basename "$md" .mdx)
-            tag_title=$(echo "$tag" | sed -E 's/(^| )(\w)/\U\2/g')
-            echo "# 🏷️ $tag_title TIL 모음" > "$md"
-            echo "" >> "$md"
-            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$md"
-            echo "|-------|------------------|------------------|" >> "$md"
+          for tag_file in "$TAGS_DIR"/*.mdx; do
+            tag=$(basename "$tag_file" .mdx)
+            [ "$tag" = "index" ] && continue
+            echo "# 🏷️ $tag TIL 모음" > "$tag_file"
+            echo "" >> "$tag_file"
+            echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$tag_file"
+            echo "|-------|------------------|------------------|" >> "$tag_file"
 
-            for file in "$TIL_DIR"/*.mdx; do
-              if grep -q "$tag" "$file"; then
+            for month_dir in "$TIL_DIR"/til-*; do
+              for file in "$month_dir"/*.mdx; do
                 fname=$(basename "$file" .mdx)
-                title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\2/g')
-                echo "| $title | [Nextra 바로가기](/til/til-2025/til-06/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/06/$fname.md) |" >> "$md"
-              fi
+                [ "$fname" = "index" ] && continue
+                if grep -q "$tag" "$file"; then
+                  title=$(echo "${fname:3}" | sed 's/-/ /g')
+                  echo "| $title | [Nextra 바로가기](/til/til-2025/$(basename $month_dir)/$fname) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/$(echo $month_dir | grep -o '[0-9]*')/$fname.md) |" >> "$tag_file"
+                fi
+              done
             done
 
-            echo "| $tag_title | [Nextra 바로가기](/til/tags/$tag) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $tag | [Nextra 바로가기](/til/tags/$tag) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
