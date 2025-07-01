@@ -25,13 +25,13 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Sync TIL and build meta/index
+      - name: Sync and Build
         run: |
           set -e
 
           mkdir -p portfolio-repo/src/pages/til/
 
-          echo "📁 Copying TIL files..."
+          echo "\ud83d\udcc1 Copying TIL files..."
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/' \
@@ -44,9 +44,9 @@ jobs:
 
           localize_name() {
             case "$1" in
-              til-2025) echo "2025년 TIL" ;;
-              til-06) echo "06월 TIL" ;;
-              til-07) echo "07월 TIL" ;;
+              til-2025) echo "2025\ub144 TIL" ;;
+              til-06) echo "06\uc6d4 TIL" ;;
+              til-07) echo "07\uc6d4 TIL" ;;
               *) echo "$1" ;;
             esac
           }
@@ -54,9 +54,8 @@ jobs:
           get_day_title() {
             file="$1"
             title=$(grep '^title:' "$file" | cut -d ':' -f2- | xargs)
-            day=${file##*/}         # til-24-web-test.mdx
-            day=${day%%-*}          # 24
-            echo "${day}일 ${title}"
+            day=${file##*/}; day=${day%%-*}
+            echo "${day}\uc77c ${title}"
           }
 
           create_meta_and_index() {
@@ -69,7 +68,7 @@ jobs:
             echo "" >> "$INDEX_FILE"
             echo "$TITLE 소개 페이지입니다." >> "$INDEX_FILE"
 
-            folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort || true)
+            folders=$(find "$DIR" -mindepth 1 -maxdepth 1 -type d | sort || true)
             files=$(find "$DIR" -mindepth 1 -maxdepth 1 -type f -name '*.mdx' ! -name 'index.mdx' | sort || true)
 
             echo "{" > "$META_FILE"
@@ -93,36 +92,38 @@ jobs:
 
           cd portfolio-repo/src/pages/til
 
-          # Remove raw numeric folders like 2025/, 06/
-          for raw in 2025 06; do
-            [ -d "$raw" ] && rm -rf "$raw"
-          done
-
-          for y in [0-9][0-9][0-9][0-9]; do
-            [ -d "$y" ] || continue
-            mv "$y" "til-$y"
+          # 정리: til-06 유지, 그 외 06 폴더 제거
+          for year in [0-9][0-9][0-9][0-9]; do
+            [ -d "$year" ] || continue
+            mv "$year" "til-$year"
           done
 
           for dir in til-*; do
             [ -d "$dir" ] || continue
             cd "$dir"
-            for m in [0-1][0-9]; do
-              [ -d "$m" ] || continue
-              mv "$m" "til-$m"
-              cd "til-$m"
-              for f in *.mdx; do
-                [ -f "$f" ] || continue
-                base=$(basename "$f" .mdx)
-                mv "$f" "til-$base.mdx"
-              done
-              cd ..
+            for month in [0-1][0-9]; do
+              [ -d "$month" ] && rm -rf "$month"
             done
             cd ..
           done
 
           cd ../../../..
 
-          create_meta_and_index "portfolio-repo/src/pages/til" "📓 TIL 소개"
+          # 고정 TIL index 생성
+          cat <<EOF > portfolio-repo/src/pages/til/index.mdx
+          # \ud83d\udcd3 Today I Learned (TIL)
+
+          > \uafd4\uc900\ud55c \uae30\ub85d\uc740 \ucc38\uc6b0\uc758 \uc131\uc7a5\uc73c\ub85c \uc774\uc5b4\uc9c4\ub2e4.  
+          \uac1c\ubc1c/\uc784\ubca0\ub518\ub4dc/\ub3c4\uad6c\uc5d0 \ub300\ud55c \ud559\uc2b5 \uae30\ub85d\uc744 \uc815\ub9ac\ud569\ub2c8\ub2e4.
+
+          ## \ud83d\udcc5 \uc5f0\ub3d9\ubcc4
+
+          - [2025\ub144 6\uc6d4](/til/til-2025/til-06)
+          - [\ud83c\udf7f\ufe0f \ud0dc\uadf8 \ubaa9\ub85d](/til/tags)
+          EOF
+
+          # 메타 및 인덱스 생성
+          create_meta_and_index "portfolio-repo/src/pages/til" "\ud83d\udcd3 TIL 소개"
 
           for ydir in portfolio-repo/src/pages/til/til-*; do
             [ -d "$ydir" ] || continue
@@ -136,7 +137,7 @@ jobs:
             done
           done
 
-          # TAGS
+          # 태그 처리
           TAGS_DIR="portfolio-repo/src/pages/til/tags"
           TAGS_META="$TAGS_DIR/_meta.json"
           TAGS_INDEX="$TAGS_DIR/index.mdx"
@@ -147,7 +148,7 @@ jobs:
             echo '  "tags": "태그 모음"' >> "$TAGS_META"
             echo "}" >> "$TAGS_META"
 
-            echo "# 🎟️ 태그 목록" > "$TAGS_INDEX"
+            echo "# \ud83c\udf9f\ufe0f \ud0dc\uadf8 \ubaa9\ub85d" > "$TAGS_INDEX"
             echo "" >> "$TAGS_INDEX"
             echo "TIL의 태그별 분류입니다." >> "$TAGS_INDEX"
             echo "" >> "$TAGS_INDEX"
@@ -158,7 +159,6 @@ jobs:
               [ -f "$tag_file" ] || continue
               tag=$(basename "$tag_file" .md)
               echo "| [$tag](/til/tags/$tag.md) | [🔗 GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$tag.md) |" >> "$TAGS_INDEX"
-
               echo "# $tag 태그 문서" > "$tag_file"
               echo "" >> "$tag_file"
               echo "## 📘 Nextra 정리" >> "$tag_file"
@@ -188,6 +188,6 @@ jobs:
             exit 0
           fi
 
-          COMMIT_MSG="📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
+          COMMIT_MSG="\ud83d\udcdd Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git commit -m "$COMMIT_MSG"
-          git push || { echo "⚠️ Git push failed"; exit 1; }
+          git push || { echo "\u26a0\ufe0f Git push failed"; exit 1; }
