@@ -39,6 +39,7 @@ jobs:
             YEAR=$(basename "$YEAR_PATH")
             mv "$YEAR_PATH" "portfolio-repo/src/pages/til/til-$YEAR"
             for MONTH_PATH in portfolio-repo/src/pages/til/til-$YEAR/*; do
+              [ -d "$MONTH_PATH" ] || continue  # 디렉토리만 처리
               MONTH=$(basename "$MONTH_PATH")
               mv "$MONTH_PATH" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
             done
@@ -52,7 +53,9 @@ jobs:
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
-          echo '{ "index": "소개", "tags": "태그모음"' > "$BASE/_meta.json"
+          echo '{' > "$BASE/_meta.json"
+          echo '  "index": "소개",' >> "$BASE/_meta.json"
+          echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
@@ -62,10 +65,11 @@ jobs:
           ## 📅 연도별
           EOF
 
+          echo "- [🏷️ 태그 모음](/til/tags)" >> "$BASE/index.mdx"
           for YEAR_PATH in "$BASE"/til-[0-9][0-9][0-9][0-9]; do
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo ", "til-$YEAR": "$YEAR년 TIL"" >> "$BASE/_meta.json"
+            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
             echo "# 소개" > "$YEAR_PATH/index.mdx"
             echo "" >> "$YEAR_PATH/index.mdx"
@@ -74,12 +78,13 @@ jobs:
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
 
-            echo '{ "index": "소개"' > "$YEAR_PATH/_meta.json"
+            echo '{' > "$YEAR_PATH/_meta.json"
+            echo '  "index": "소개"' >> "$YEAR_PATH/_meta.json"
 
             for MONTH_PATH in "$YEAR_PATH"/til-*; do
               MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
               echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/tree/main/$YEAR/$MONTH) |" >> "$YEAR_PATH/index.mdx"
-              echo ", "til-$MONTH": "${MONTH}월 TIL"" >> "$YEAR_PATH/_meta.json"
+              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
 
               echo "# 소개" > "$MONTH_PATH/index.mdx"
               echo "" >> "$MONTH_PATH/index.mdx"
@@ -88,19 +93,24 @@ jobs:
               echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_PATH/index.mdx"
               echo "|-------|------------------|------------------|" >> "$MONTH_PATH/index.mdx"
 
-              echo '{ "index": "소개"' > "$MONTH_PATH/_meta.json"
+              echo '{' > "$MONTH_PATH/_meta.json"
+              echo '  "index": "소개"' >> "$MONTH_PATH/_meta.json"
+
               for FILE in "$MONTH_PATH"/*.mdx; do
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
                 echo "| ${DAY}일 $TITLE | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
-                echo ", "$FNAME": "${DAY}일 $TITLE"" >> "$MONTH_PATH/_meta.json"
+                echo '  ,"'$FNAME'": "'${DAY}일 $TITLE'"' >> "$MONTH_PATH/_meta.json"
               done
+
               echo "}" >> "$MONTH_PATH/_meta.json"
             done
+
             echo "}" >> "$YEAR_PATH/_meta.json"
           done
+
           echo "}" >> "$BASE/_meta.json"
 
       - name: Convert tags and generate tag index
@@ -126,9 +136,9 @@ jobs:
               FNAME=$(basename "$FILE" .mdx)
               [ "$FNAME" = "index" ] && continue
               if grep -q "$TAG" "$FILE"; then
-                YEAR_MONTH=$(echo "$FILE" | grep -o 'til-[0-9]*/til-[0-9]*')
+                YM=$(echo "$FILE" | grep -o 'til-[0-9]*/til-[0-9]*')
                 TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
-                echo "| $TITLE | [Nextra 바로가기](/til/$YEAR_MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/${YEAR_MONTH/til-/}/${FNAME}.md) |" >> "$TAG_FILE"
+                echo "| $TITLE | [Nextra 바로가기](/til/$YM/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/${YM/til-/}/$FNAME.md) |" >> "$TAG_FILE"
               fi
             done
 
@@ -140,12 +150,10 @@ jobs:
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
-
           git add .
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
