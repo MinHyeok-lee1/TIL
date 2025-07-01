@@ -92,7 +92,9 @@ jobs:
             dest_dir="portfolio-repo/src/pages/til/til-$year"
             mkdir -p "$dest_dir"
             rsync -a --remove-source-files "$year_dir/" "$dest_dir/"
-            rmdir "$year_dir"
+            if [ -d "portfolio-repo/src/pages/til/2025" ]; then
+            rm -rf "$year_dir"
+            fi 
             create_meta_and_index "$dest_dir" "📅 ${year}년 TIL"
 
             for month_dir in "$dest_dir"/*; do
