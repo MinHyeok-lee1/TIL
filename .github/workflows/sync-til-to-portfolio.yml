@@ -36,14 +36,18 @@ jobs:
 
       - name: Convert .md to .mdx (excluding tags/)
         run: |
-          find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" | while read file; do
-            mv "$file" "${file%.md}.mdx"
+          find portfolio-repo/src/pages/til -type f -name "*.md" ! -path "*/tags/*" -print0 | while IFS= read -r -d '' file; do
+            new_file="${file%.md}.mdx"
+            mv "$file" "$new_file"
           done
 
-      - name: Create index.mdx (고정 텍스트)
+      - name: Create all index.mdx and _meta.json
         run: |
-          mkdir -p portfolio-repo/src/pages/til
-          cat <<EOF > portfolio-repo/src/pages/til/index.mdx
+          base_dir="portfolio-repo/src/pages/til"
+
+          # 1. 최상위 index.mdx (TIL 소개용)
+          mkdir -p "$base_dir"
+          cat <<EOF > "$base_dir/index.mdx"
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 최고의 성장으로 이어진다.  
@@ -54,6 +58,26 @@ jobs:
           - [🏷️ 태그 모음](/til/tags)
           - [2025년 6월](/til/til-2025/til-06)
           EOF
+
+          # 2. til-2025 index.mdx + _meta.json
+          mkdir -p "$base_dir/til-2025"
+          echo -e "# 소개\n\n이 폴더는 정리된 TIL 문서를 포함하고 있습니다." > "$base_dir/til-2025/index.mdx"
+          echo '{ "index": "소개", "til-06": "06월 TIL" }' > "$base_dir/til-2025/_meta.json"
+
+          # 3. til-06 index.mdx + _meta.json
+          mkdir -p "$base_dir/til-2025/til-06"
+          echo -e "# 소개\n\n이 폴더는 정리된 TIL 문서를 포함하고 있습니다." > "$base_dir/til-2025/til-06/index.mdx"
+
+          echo '{' > "$base_dir/til-2025/til-06/_meta.json"
+          echo '  "index": "소개",' >> "$base_dir/til-2025/til-06/_meta.json"
+          find "$base_dir/til-2025/til-06" -type f -name "*.mdx" | while read file; do
+            fname=$(basename "$file" .mdx)
+            day=${fname:0:2}
+            title=$(echo "${fname:3}" | sed 's/-/ /g' | sed -E 's/(^| )(\w)/\U\\2/g')
+            echo "  \"$fname\": \"$day일 $title\"," >> "$base_dir/til-2025/til-06/_meta.json"
+          done
+          sed -i '$ s/,$//' "$base_dir/til-2025/til-06/_meta.json"
+          echo '}' >> "$base_dir/til-2025/til-06/_meta.json"
 
       - name: Commit and Push
         run: |
