@@ -48,14 +48,19 @@ jobs:
       - name: Detect deleted files
         id: detect-deletion
         run: |
-          git fetch origin main
-          DELETED=$(git diff --name-only --diff-filter=D origin/main..HEAD | grep -E '\\.md$' || true)
+          cd til-repo
+          git remote add origin https://github.com/MinHyeok-lee1/TIL.git
+          git fetch origin main || true
+
+          DELETED=$(git diff --name-only --diff-filter=D origin/main...HEAD | grep -E '\.md$' || true)
+
           if [ -n "$DELETED" ]; then
             echo "Deletions detected:"
             echo "$DELETED"
             echo "hasDeletions=true" >> "$GITHUB_OUTPUT"
           else
             echo "hasDeletions=false" >> "$GITHUB_OUTPUT"
+          fi
 
   build-years:
     needs: setup
