@@ -12,6 +12,7 @@ jobs:
     outputs:
       hasYears: ${{ steps.set-years.outputs.hasYears }}
       years: ${{ steps.set-years.outputs.years }}
+      hasDeletions: ${{ steps.detect-deletion.outputs.hasDeletions }}
 
     steps:
       - name: Checkout TIL repository
@@ -43,6 +44,18 @@ jobs:
           JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "hasYears=true" >> "$GITHUB_OUTPUT"
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Detect deleted files
+        id: detect-deletion
+        run: |
+          git fetch origin main
+          DELETED=$(git diff --name-only --diff-filter=D origin/main..HEAD | grep -E '\\.md$' || true)
+          if [ -n "$DELETED" ]; then
+            echo "Deletions detected:"
+            echo "$DELETED"
+            echo "hasDeletions=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasDeletions=false" >> "$GITHUB_OUTPUT"
 
   build-years:
     needs: setup
@@ -76,8 +89,7 @@ jobs:
           find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
-    needs: [setup, build-years]
-    if: always()
+    needs: build-years
     runs-on: ubuntu-latest
 
     steps:
@@ -88,6 +100,10 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
+      - name: Clean old _meta.json and index.mdx files
+        run: |
+          find portfolio-repo/src/pages/til -name '_meta.json' -delete
+          find portfolio-repo/src/pages/til -name 'index.mdx' -delete
       - name: Create index.mdx and _meta.json
         run: |
           BASE="portfolio-repo/src/pages/til"
@@ -187,25 +203,32 @@ jobs:
           done
 
       - name: Commit and Push
+        id: pushcheck
         run: |
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
 
-          CHANGED=$(git status --porcelain | grep -E '^ M|^A|^??' | grep -vE 'tags/.*index.mdx' || true)
+          CHANGED=$(git status --porcelain | grep -E '^ M|^A|^??|^ D' || true)
 
           if [ -z "$CHANGED" ]; then
             echo "✅ No actual content changes. Skipping commit."
+            echo "should_force=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           git add .
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
+          echo "should_force=${{ needs.setup.outputs.hasDeletions }}" >> "$GITHUB_OUTPUT"
 
-      # 커밋이 깃허브랑 안맞을때 (정적파일 생성되어 남아 있을때)
-      # - name: Deploy to Vercel
-      #   run: |
-      #     npm install -g vercel
-      #     vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --force
-      #   working-directory: portfolio-repo
+      - name: Deploy to Vercel
+        if: always()
+        run: |
+          npm install -g vercel
+          FORCE_FLAG=""
+          if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG
+        working-directory: portfolio-repo
