@@ -29,8 +29,10 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "years=$YEARS" >> "$GITHUB_OUTPUT"
+          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | tr '\n' ' ')
+          echo "Found years: $YEARS"
+          JSON=$(echo $YEARS | awk '{for(i=1;i<=NF;i++) printf "\"%s\"%s", $i, (i==NF ? "" : ",")}' | sed 's/.*/[&]/')
+          echo "years=$JSON" >> "$GITHUB_OUTPUT"
 
   build-years:
     needs: setup
@@ -176,7 +178,6 @@ jobs:
           cd portfolio-repo
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
-          git add .
 
           CHANGED=$(git status --porcelain | grep -E '^ M|^A|^??' | grep -vE 'tags/.*index.mdx' || true)
 
