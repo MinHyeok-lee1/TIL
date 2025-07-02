@@ -201,3 +201,9 @@ jobs:
           git add .
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
+
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
+        working-directory: portfolio-repo
