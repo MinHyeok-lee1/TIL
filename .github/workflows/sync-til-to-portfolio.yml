@@ -169,9 +169,13 @@ jobs:
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
           git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
+          CHANGED=$(git status --porcelain | grep -E '^ M|^A|^??' | grep -vE 'tags/.*index.mdx' || true)
+
+          if [ -z "$CHANGED" ]; then
+            echo "✅ No actual content changes. Skipping commit."
             exit 0
           fi
+
+          git add .
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
