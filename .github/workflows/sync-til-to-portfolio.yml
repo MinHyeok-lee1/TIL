@@ -18,6 +18,14 @@ jobs:
         with:
           path: til-repo
 
+      - name: Cache til-repo content
+        uses: actions/cache@v3
+        with:
+          path: til-repo
+          key: ${{ runner.os }}-tilrepo-${{ hashFiles('til-repo/**/*.md') }}
+          restore-keys: |
+            ${{ runner.os }}-tilrepo-
+
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
