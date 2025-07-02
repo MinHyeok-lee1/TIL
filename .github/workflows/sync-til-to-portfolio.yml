@@ -135,7 +135,7 @@ jobs:
             done
 
             echo "| $TAG | [Nextra 바로가기](/til/tags/$TAG) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$TAG.md) |" >> "$TAGS_DIR/index.mdx"
-
+          done
       - name: Commit and Push
         run: |
           cd portfolio-repo
