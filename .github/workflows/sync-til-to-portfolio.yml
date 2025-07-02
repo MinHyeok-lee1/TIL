@@ -31,8 +31,10 @@ jobs:
         run: |
           YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | tr '\n' ' ')
           echo "Found years: $YEARS"
+
           JSON=$(echo $YEARS | awk '{for(i=1;i<=NF;i++) printf "\"%s\"%s", $i, (i==NF ? "" : ",")}' | sed 's/.*/[&]/')
-          echo "years=$JSON" >> "$GITHUB_OUTPUT"
+
+          echo "::set-output name=years::$JSON"
 
   build-years:
     needs: setup
