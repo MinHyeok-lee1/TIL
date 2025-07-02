@@ -169,6 +169,7 @@ jobs:
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
           git add .
+
           CHANGED=$(git status --porcelain | grep -E '^ M|^A|^??' | grep -vE 'tags/.*index.mdx' || true)
 
           if [ -z "$CHANGED" ]; then
