@@ -31,9 +31,7 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||')
-          echo "YEARS FOUND:"
-          echo "$YEARS"
+          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | sort)
 
           if [ -z "$YEARS" ]; then
             echo "hasYears=false" >> "$GITHUB_OUTPUT"
@@ -42,7 +40,11 @@ jobs:
           fi
 
           JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "hasYears=true" >> "$GITHUB_OUTPUT"
+          if [ "$JSON" = "[]" ]; then
+            echo "hasYears=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasYears=true" >> "$GITHUB_OUTPUT"
+          fi
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
 
       - name: Detect deleted files
@@ -68,8 +70,9 @@ jobs:
     if: needs.setup.outputs.hasYears == 'true'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        year: ${{ fromJson(needs.setup.outputs.years) }}
+        year: ${{ fromJson(needs.setup.outputs.years || '[]') }}
 
     steps:
       - name: Checkout TIL repo
@@ -95,7 +98,8 @@ jobs:
           find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
-    needs: build-years
+    needs: [build-years]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
 
     steps:
