@@ -10,6 +10,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
+      hasYears: ${{ steps.set-years.outputs.hasYears }}
       years: ${{ steps.set-years.outputs.years }}
 
     steps:
@@ -29,19 +30,23 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | tr '\n' ' ')
-          echo "Found years: $YEARS"
+          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||')
+          echo "YEARS FOUND:"
+          echo "$YEARS"
 
           if [ -z "$YEARS" ]; then
+            echo "hasYears=false" >> "$GITHUB_OUTPUT"
             echo "years=[]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          JSON=$(echo $YEARS | awk '{for(i=1;i<=NF;i++) printf "\"%s\"%s", $i, (i==NF ? "" : ",")}' | sed 's/.*/[&]/')
+          JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "hasYears=true" >> "$GITHUB_OUTPUT"
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
 
   build-years:
     needs: setup
+    if: needs.setup.outputs.hasYears == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
