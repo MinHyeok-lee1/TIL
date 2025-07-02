@@ -49,6 +49,7 @@ jobs:
         id: detect-deletion
         run: |
           cd til-repo
+          git remote remove origin || true
           git remote add origin https://github.com/MinHyeok-lee1/TIL.git
           git fetch origin main || true
 
