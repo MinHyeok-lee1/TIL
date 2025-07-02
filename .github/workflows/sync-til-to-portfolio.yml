@@ -205,5 +205,5 @@ jobs:
       - name: Deploy to Vercel
         run: |
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --confirm
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes --force
         working-directory: portfolio-repo
