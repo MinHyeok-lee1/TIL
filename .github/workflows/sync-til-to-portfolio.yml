@@ -63,9 +63,9 @@ jobs:
 
           YEAR_DIRS=$(find "$BASE" -mindepth 1 -maxdepth 1 -type d -regex "$BASE/til-[0-9]{4}" || true)
           if [ -z "$YEAR_DIRS" ]; then
-            echo "⚠️ No til-YYYY folders found, creating placeholder."
-            mkdir -p "$BASE/til-2025/til-01"
-            YEAR_DIRS="$BASE/til-2025"
+            echo "⚠️ No til-YYYY folders found. Skipping year/month index generation."
+            echo "}" >> "$BASE/_meta.json"
+            exit 0
           fi
 
           for YEAR_PATH in $YEAR_DIRS; do
