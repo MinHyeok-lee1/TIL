@@ -60,7 +60,12 @@ jobs:
           YEAR=${{ matrix.year }}
           for MONTH in $(find "til-repo/$YEAR" -mindepth 1 -maxdepth 1 -type d -regex "til-repo/$YEAR/[0-9]{2}" -exec basename {} \;); do
             mkdir -p "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
-            cp til-repo/$YEAR/$MONTH/*.md "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/" || true
+
+            shopt -s nullglob
+            for FILE in til-repo/$YEAR/$MONTH/*.md; do
+              cp "$FILE" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/"
+            done
+            shopt -u nullglob
           done
 
           find portfolio-repo/src/pages/til/til-$YEAR -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
