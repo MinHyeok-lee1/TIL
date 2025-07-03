@@ -34,7 +34,6 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # tags 디렉토리는 제외하고 분문 md 파일만 처리
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
@@ -102,7 +101,7 @@ jobs:
 
           EOF
 
-          shopt -s nullglob 
+          shopt -s nullglob
 
           for YEAR_PATH in "$BASE"/til-[0-9][0-9][0-9][0-9]; do
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
@@ -110,20 +109,16 @@ jobs:
             echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
             echo "# 문서개요" > "$YEAR_PATH/index.mdx"
-            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH
+            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
 
             echo '{' > "$YEAR_PATH/_meta.json"
             echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
-            # ✅ 월 디렉토리 루프
             for MONTH_PATH in "$YEAR_PATH"/til-*; do
-              [ -d "$MONTH_PATH" ] || continue  # 필수 확인
-
+              [ -d "$MONTH_PATH" ] || continue
               MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
-
-              # til-2025/_meta.json에 til-07: "07월 TIL" 추가
               echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
 
               echo "# 문서개요" > "$MONTH_PATH/index.mdx"
@@ -152,6 +147,7 @@ jobs:
 
             echo "}" >> "$YEAR_PATH/_meta.json"
           done
+
           echo "}" >> "$BASE/_meta.json"
 
       - name: Commit and Push
