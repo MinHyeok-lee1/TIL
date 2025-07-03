@@ -24,7 +24,12 @@ jobs:
         id: set-years
         run: |
           set -e
-          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | sort)
+          echo "🔍 Working directory: $PWD"
+          echo "📂 Contents of til-repo:"
+          ls -R til-repo
+
+          YEARS=$(find til-repo -mindepth 2 -maxdepth 2 -type f -name '*.md' | cut -d'/' -f2 | sort -u)
+          echo "📅 Found years: $YEARS"
 
           if [ -z "$YEARS" ]; then
             echo "hasYears=false" >> "$GITHUB_OUTPUT"
