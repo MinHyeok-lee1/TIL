@@ -79,33 +79,20 @@ jobs:
           repository: MinHyeok-lee1/MinHyeok-lee1-portfolio
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
-
       - name: Sync and convert ${{ matrix.year }}
         run: |
           set -e
           YEAR=${{ matrix.year }}
 
-          for MONTH_PATH in til-repo/$YEAR/*; do
-              [ -d "$MONTH_PATH" ] || continue
-              MONTH=$(basename "$MONTH_PATH")
-
-              echo "🗂️ Syncing $YEAR/$MONTH"
-              DEST_DIR="portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
-              mkdir -p "$DEST_DIR"
-
-              echo "📂 MONTH_PATH: $MONTH_PATH"
-              ls -al "$MONTH_PATH" || echo "❌ Failed to list $MONTH_PATH"
-
-              find "til-repo/$YEAR" -type f -name "*.md" | while read FILE; do
-              REL_PATH="${FILE#til-repo/}"
-              DEST_PATH="portfolio-repo/src/pages/til/til-${REL_PATH%.*}.mdx"
-              mkdir -p "$(dirname "$DEST_PATH")"
-              cp "$FILE" "$DEST_PATH"
-            done
+          echo "🔁 Finding all .md files in $YEAR"
+          find "til-repo/$YEAR" -type f -name "*.md" | while read FILE; do
+            REL_PATH="${FILE#til-repo/}"                     # e.g. 2025/07/02-foo.md
+            REL_PATH_NOEXT="${REL_PATH%.md}"                 # e.g. 2025/07/02-foo
+            DEST_PATH="portfolio-repo/src/pages/til/til-${REL_PATH_NOEXT}.mdx"
+            mkdir -p "$(dirname "$DEST_PATH")"
+            cp "$FILE" "$DEST_PATH"
+            echo "✅ Copied: $REL_PATH → $DEST_PATH"
           done
-
-          echo "🔁 Converting .md → .mdx"
-          find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
     needs: [build-years]
