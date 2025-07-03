@@ -22,10 +22,6 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      - name: Cleanup old TIL pages
-        run: |
-          rm -rf portfolio-repo/src/pages/til
-
       - name: Sync and convert TIL files
         run: |
           set -e
@@ -39,9 +35,6 @@ jobs:
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
-
-            [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
-            [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
 
             DEST_DIR="$DEST_BASE/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
@@ -59,33 +52,9 @@ jobs:
           done
           shopt -u nullglob
 
-      - name: Create tags/_meta.json and index.mdx
-        run: |
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          mkdir -p "$TAGS_DIR"
-
-          echo '{' > "$TAGS_DIR/_meta.json"
-          echo '  "index": "소개"' >> "$TAGS_DIR/_meta.json"
-          FIRST=1
-          for FILE in "$TAGS_DIR"/*.mdx; do
-            NAME=$(basename "$FILE" .mdx)
-            echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-          done
-          echo "}" >> "$TAGS_DIR/_meta.json"
-
-          echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
-
-          for FILE in "$TAGS_DIR"/*.mdx; do
-            NAME=$(basename "$FILE" .mdx)
-            echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
-          done
-
-      - name: Create index.mdx and _meta.json files
+      - name: Create index.mdx and _meta.json
         run: |
           BASE="portfolio-repo/src/pages/til"
-          mkdir -p "$BASE"
 
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
@@ -102,31 +71,29 @@ jobs:
             [ -d "$YEAR_DIR" ] || continue
             YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
 
+            echo ",\"til-$YEAR\": \"$YEAR년 TIL\"" >> "$BASE/_meta.json"
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
+            echo '{' > "$YEAR_DIR/_meta.json"
+            echo '  "index": "문서개요"' >> "$YEAR_DIR/_meta.json"
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "$YEAR년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_DIR/index.mdx"
 
-            echo '{' > "$YEAR_DIR/_meta.json"
-            echo '  "index": "문서개요"' >> "$YEAR_DIR/_meta.json"
-
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
               MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
 
+              echo ",\"til-$MONTH\": \"$MONTH월 TIL\"" >> "$YEAR_DIR/_meta.json"
               echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_DIR/index.mdx"
-              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_DIR/_meta.json"
 
+              echo '{' > "$MONTH_DIR/_meta.json"
+              echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "$MONTH월의 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|-------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
-
-              echo '{' > "$MONTH_DIR/_meta.json"
-              echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
 
               FIRST_FILE=1
               for FILE in "$MONTH_DIR"/*.mdx; do
@@ -140,10 +107,10 @@ jobs:
                 echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
 
                 if [ $FIRST_FILE -eq 1 ]; then
-                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                  echo "  \"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_DIR/_meta.json"
                   FIRST_FILE=0
                 else
-                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                  echo ",\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_DIR/_meta.json"
                 fi
               done
               echo "}" >> "$MONTH_DIR/_meta.json"
