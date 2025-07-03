@@ -40,6 +40,9 @@ jobs:
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
 
+            [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
+            [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
+
             DEST_DIR="$DEST_BASE/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
@@ -56,7 +59,35 @@ jobs:
           done
           shopt -u nullglob
 
-      - name: Create all _meta.json and index.mdx files
+      - name: Create tags/_meta.json and index.mdx
+        run: |
+          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          mkdir -p "$TAGS_DIR"
+
+          echo '{' > "$TAGS_DIR/_meta.json"
+          echo '  "index": "소개"' >> "$TAGS_DIR/_meta.json"
+          FIRST=1
+          for FILE in "$TAGS_DIR"/*.mdx; do
+            NAME=$(basename "$FILE" .mdx)
+            if [ $FIRST -eq 1 ]; then
+              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
+              FIRST=0
+            else
+              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
+            fi
+          done
+          echo "}" >> "$TAGS_DIR/_meta.json"
+
+          echo "# 🏷️ 태그 목역" > "$TAGS_DIR/index.mdx"
+          echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
+          echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
+
+          for FILE in "$TAGS_DIR"/*.mdx; do
+            NAME=$(basename "$FILE" .mdx)
+            echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
+          done
+
+      - name: Create index.mdx and _meta.json files
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
@@ -65,12 +96,12 @@ jobs:
           echo '  "index": "소개",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
-          echo "# \ud83d\udcd3 Today I Learned (TIL)" > "$BASE/index.mdx"
-          echo "> 꾸준한 기록은 꾸준한 성장으로 이어진다." >> "$BASE/index.mdx"
+          echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
+          echo "> 꿔준한 기록은 꿔준한 성장으로 이여진다." >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
-          echo "[\ud83c\udff7\ufe0f 태그모음](/til/tags)" >> "$BASE/index.mdx"
+          echo "[🏷️ 태그목역](/til/tags)" >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
-          echo "## \ud83d\udcc5 연도별" >> "$BASE/index.mdx"
+          echo "## 📅 연도별" >> "$BASE/index.mdx"
 
           for YEAR_DIR in "$BASE"/til-*; do
             [ -d "$YEAR_DIR" ] || continue
@@ -95,14 +126,14 @@ jobs:
               echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_DIR/_meta.json"
 
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
-              echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
+              echo "$MONTH월의 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|-------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
 
               echo '{' > "$MONTH_DIR/_meta.json"
               echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
 
-              shopt -s nullglob
+              FIRST_FILE=1
               for FILE in "$MONTH_DIR"/*.mdx; do
                 [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
@@ -112,16 +143,18 @@ jobs:
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
 
                 echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
-                echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
-              done
-              shopt -u nullglob
 
+                if [ $FIRST_FILE -eq 1 ]; then
+                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                  FIRST_FILE=0
+                else
+                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                fi
+              done
               echo "}" >> "$MONTH_DIR/_meta.json"
             done
-
             echo "}" >> "$YEAR_DIR/_meta.json"
           done
-
           echo "}" >> "$BASE/_meta.json"
 
       - name: Commit and Push
@@ -136,3 +169,15 @@ jobs:
           fi
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
+
+      # - name: Deploy to Vercel
+      #   if: always()
+      #   run: |
+      #     set -e
+      #     npm install -g vercel
+      #     FORCE_FLAG=""
+      #     if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
+      #       FORCE_FLAG="--force"
+      #     fi
+      #     vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
+      #   working-directory: portfolio-repo
