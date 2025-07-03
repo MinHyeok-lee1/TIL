@@ -95,41 +95,51 @@ jobs:
           BASE="portfolio-repo/src/pages/til"
 
           # til/_meta.json
-          echo '{' > "$BASE/_meta.json"
+          echo "{" > "$BASE/_meta.json"
           echo '  "index": "문서개요",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
+          YEARS=()
+          for YEAR_DIR in "$BASE"/til-*; do
+            [ -d "$YEAR_DIR" ] || continue
+            YEARS+=("$(basename "$YEAR_DIR" | cut -d'-' -f2)")
+          done
+          for YEAR in "${YEARS[@]}"; do
+            echo '  ,"til-'"$YEAR"'": "'"$YEAR"'년 TIL"' >> "$BASE/_meta.json"
+          done
+          echo "}" >> "$BASE/_meta.json"
 
           # tags/_meta.json, tags/index.mdx
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
-          echo '{' > "$TAGS_DIR/_meta.json"
-          echo '  "index": "문서개요"' >> "$TAGS_DIR/_meta.json"
-          FIRST=1
-          FILES=( "$TAGS_DIR"/*.mdx )
-          for FILE in "${FILES[@]}"; do
-            [ -f "$FILE" ] || continue
-            NAME=$(basename "$FILE" .mdx)
-            [ "$NAME" = "index" ] && continue   # index.mdx는 meta에 추가 X
-            if [ $FIRST -eq 1 ]; then
-              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-              FIRST=0
-            else
-              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-            fi
-          done
-          echo "}" >> "$TAGS_DIR/_meta.json"
+          # tags/_meta.json (index가 항상 첫 줄)
+          {
+            echo '{'
+            echo '  "index": "문서개요"'
+            FIRST=1
+            for FILE in "$TAGS_DIR"/*.mdx; do
+              [ -f "$FILE" ] || continue
+              NAME=$(basename "$FILE" .mdx)
+              [ "$NAME" = "index" ] && continue
+              if [ $FIRST -eq 1 ]; then
+                echo -n ",\n  \"${NAME}\": \"${NAME} 태그\""
+                FIRST=0
+              else
+                echo -n ",\n  \"${NAME}\": \"${NAME} 태그\""
+              fi
+            done
+            echo -e "\n}"
+          } > "$TAGS_DIR/_meta.json"
 
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
           echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
-          for FILE in "${FILES[@]}"; do
-            [ -f "$FILE" ] || continue
+          for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
             echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
-          # til index.mdx (echo문이 아니라 마크다운 직접 작성)
+          # til index.mdx
           echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "> 꾸준한 기록은 최고의 성장으로 이어진다." >> "$BASE/index.mdx"
@@ -137,57 +147,73 @@ jobs:
           echo "[🏷️ 태그모음](/til/tags)" >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "## 📅 연도별" >> "$BASE/index.mdx"
-          for YEAR_DIR in "$BASE"/til-*; do
-            [ -d "$YEAR_DIR" ] || continue
-            YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
+          for YEAR in "${YEARS[@]}"; do
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo ",  \"til-$YEAR\": \"${YEAR}년 TIL\"" >> "$BASE/_meta.json"
+          done
 
+          # til-YYYY/_meta.json, til-YYYY/index.mdx
+          for YEAR in "${YEARS[@]}"; do
+            YEAR_DIR="$BASE/til-$YEAR"
+
+            # til-YYYY/_meta.json
+            {
+              echo '{'
+              echo '  "index": "문서개요"'
+              FIRST=1
+              for MONTH_DIR in "$YEAR_DIR"/til-*; do
+                [ -d "$MONTH_DIR" ] || continue
+                MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
+                if [ $FIRST -eq 1 ]; then
+                  echo -n ",\n  \"til-$MONTH\": \"${MONTH}월 TIL\""
+                  FIRST=0
+                else
+                  echo -n ",\n  \"til-$MONTH\": \"${MONTH}월 TIL\""
+                fi
+              done
+              echo -e "\n}"
+            } > "$YEAR_DIR/_meta.json"
+
+            # til-YYYY/index.mdx (표로 월별 링크)
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_DIR/index.mdx"
-
-            META="$YEAR_DIR/_meta.json"
-            echo "{" > "$META"
-            FIRST=1
-
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
               MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
-              # 표에 한 줄씩 제대로 출력
               echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
-              if [ $FIRST -eq 1 ]; then
-                echo "  \"til-$MONTH\": \"${MONTH}월 TIL\"" >> "$META"
-                FIRST=0
-              else
-                echo "  ,\"til-$MONTH\": \"${MONTH}월 TIL\"" >> "$META"
-              fi
-
-              # til-YYYY/til-MM/_meta.json, til-YYYY/til-MM/index.mdx
-              MONTH_META="$MONTH_DIR/_meta.json"
-              echo "{" > "$MONTH_META"
-              echo '  "index": "문서개요",' >> "$MONTH_META"
-              FIRST_FILE=1
-              FILES=( "$MONTH_DIR"/*.mdx )
-              for FILE in "${FILES[@]}"; do
-                [ -f "$FILE" ] || continue
-                FNAME=$(basename "$FILE" .mdx)
-                [ "$FNAME" = "index" ] && continue
-                DAY=$(echo "$FNAME" | cut -d'-' -f1)
-                TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                if [ $FIRST_FILE -eq 1 ]; then
-                  echo "  \"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_META"
-                  FIRST_FILE=0
-                else
-                  echo "  ,\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_META"
-                fi
-              done
-              echo "}" >> "$MONTH_META"
             done
-            echo "}" >> "$META"
+
+            # til-YYYY/til-MM/_meta.json, til-YYYY/til-MM/index.mdx
+            for MONTH_DIR in "$YEAR_DIR"/til-*; do
+              [ -d "$MONTH_DIR" ] || continue
+              MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
+
+              # til-YYYY/til-MM/_meta.json
+              {
+                echo '{'
+                echo '  "index": "문서개요"'
+                FIRST_FILE=1
+                FILES=( "$MONTH_DIR"/*.mdx )
+                for FILE in "${FILES[@]}"; do
+                  [ -f "$FILE" ] || continue
+                  FNAME=$(basename "$FILE" .mdx)
+                  [ "$FNAME" = "index" ] && continue
+                  DAY=$(echo "$FNAME" | cut -d'-' -f1)
+                  TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+                  if [ $FIRST_FILE -eq 1 ]; then
+                    echo -n ",\n  \"${FNAME}\": \"${DAY}일 ${TITLE_CLEAN}\""
+                    FIRST_FILE=0
+                  else
+                    echo -n ",\n  \"${FNAME}\": \"${DAY}일 ${TITLE_CLEAN}\""
+                  fi
+                done
+                echo -e "\n}"
+              } > "$MONTH_DIR/_meta.json"
+
+              # til-YYYY/til-MM/index.mdx는 기존대로
+            done
           done
-          echo "}" >> "$BASE/_meta.json"
 
       - name: Commit and Push
         run: |
