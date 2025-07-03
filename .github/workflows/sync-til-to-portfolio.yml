@@ -68,7 +68,10 @@ jobs:
             shopt -u nullglob
           done
 
-          find portfolio-repo/src/pages/til/til-$YEAR -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
+          # 안정적인 .md → .mdx 변환
+          find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" | while read FILE; do
+            mv "$FILE" "${FILE%.md}.mdx"
+          done
 
   finalize:
     needs: [build-years]
