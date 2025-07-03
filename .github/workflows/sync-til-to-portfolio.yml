@@ -53,20 +53,25 @@ jobs:
           done
           shopt -u nullglob
 
+      - name: Clean old _meta.json and index.mdx files
+        run: |
+          find portfolio-repo/src/pages/til -name '_meta.json' -delete
+          find portfolio-repo/src/pages/til -name 'index.mdx' -delete
+
       - name: Create index.mdx and _meta.json files
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
-          echo '  "tags": "태그 모음"' >> "$BASE/_meta.json"
+          echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 꾸준한 성장으로 이어진다.
 
-          [🏷️ 태그 모음](/til/tags)
+          [🏷️ 태그모음](/til/tags)
 
           ## 📅 연도별
 
