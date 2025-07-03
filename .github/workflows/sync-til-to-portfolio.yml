@@ -34,8 +34,8 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # 복사 및 .md → .mdx 변환
-          find "$SRC_BASE" -type f -name "*.md" | grep -vE '^til-repo/README\.md$' | while read FILE; do
+          # tags 디렉토리는 제외하고 본문 md 파일만 처리
+          find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"  # e.g. 2025/07/02-test.md
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
@@ -46,14 +46,14 @@ jobs:
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
+          # 태그 md 파일만 별도 처리
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
 
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            NAME=$(basename "$FILE")
-            NAME="${NAME%.md}"
+            NAME=$(basename "$FILE" .md)
             cp "$FILE" "$TAGS_DEST/$NAME.mdx"
           done
           shopt -u nullglob
