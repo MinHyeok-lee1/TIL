@@ -102,13 +102,15 @@ jobs:
 
           EOF
 
+          shopt -s nullglob 
+
           for YEAR_PATH in "$BASE"/til-[0-9][0-9][0-9][0-9]; do
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
             echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
             echo "# 문서개요" > "$YEAR_PATH/index.mdx"
-            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
+            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
 
