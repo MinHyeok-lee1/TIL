@@ -103,41 +103,36 @@ jobs:
 
           EOF
 
-          YEAR_DIRS=$(find "$BASE" -mindepth 1 -maxdepth 1 -type d -regex "$BASE/til-[0-9]{4}" || true)
-          if [ -z "$YEAR_DIRS" ]; then
-            echo "⚠️ No til-YYYY folders found. Skipping year/month index generation."
-            echo "}" >> "$BASE/_meta.json"
-            exit 0
-          fi
-
-          for YEAR_PATH in $YEAR_DIRS; do
+          for YEAR_PATH in "$BASE"/til-[0-9][0-9][0-9][0-9]; do
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
             echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
-            echo "# 소개" > "$YEAR_PATH/index.mdx"
+            echo "# 문서개요" > "$YEAR_PATH/index.mdx"
+            echo "" >> "$YEAR_PATH/index.mdx"
             echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
+            echo "" >> "$YEAR_PATH/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
 
             echo '{' > "$YEAR_PATH/_meta.json"
-            echo '  "index": "소개"' >> "$YEAR_PATH/_meta.json"
+            echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
-            MONTH_DIRS=$(find "$YEAR_PATH" -mindepth 1 -maxdepth 1 -type d -regex "$YEAR_PATH/til-[0-9]{2}" || true)
-            for MONTH_PATH in $MONTH_DIRS; do
+            for MONTH_PATH in "$YEAR_PATH"/til-*; do
               MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
               echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/tree/main/$YEAR/$MONTH) |" >> "$YEAR_PATH/index.mdx"
               echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
 
-              echo "# 소개" > "$MONTH_PATH/index.mdx"
+              echo "# 문서개요" > "$MONTH_PATH/index.mdx"
+              echo "" >> "$MONTH_PATH/index.mdx"
               echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
+              echo "" >> "$MONTH_PATH/index.mdx"
               echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_PATH/index.mdx"
               echo "|-------|------------------|------------------|" >> "$MONTH_PATH/index.mdx"
 
               echo '{' > "$MONTH_PATH/_meta.json"
-              echo '  "index": "소개"' >> "$MONTH_PATH/_meta.json"
+              echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
 
-              shopt -s nullglob
               for FILE in "$MONTH_PATH"/*.mdx; do
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
@@ -146,7 +141,6 @@ jobs:
                 echo "| ${DAY}일 $TITLE | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
                 echo '  ,"'$FNAME'": "'${DAY}일 $TITLE'"' >> "$MONTH_PATH/_meta.json"
               done
-              shopt -u nullglob
 
               echo "}" >> "$MONTH_PATH/_meta.json"
             done
