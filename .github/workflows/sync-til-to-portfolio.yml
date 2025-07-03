@@ -34,9 +34,9 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # tags 디렉토리는 제외하고 본문 md 파일만 처리
+          # tags 디렉토리는 제외하고 분문 md 파일만 처리
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
-            REL_PATH="${FILE#$SRC_BASE/}"  # e.g. 2025/07/02-test.md
+            REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
@@ -46,7 +46,6 @@ jobs:
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
-          # 태그 md 파일만 별도 처리
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
@@ -119,11 +118,11 @@ jobs:
             echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
             for MONTH_PATH in "$YEAR_PATH"/til-*; do
-              [ -d "$MONTH_PATH" ] || continue  # 디렉토리인지 확인
-
+              [ -d "$MONTH_PATH" ] || continue
               MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
+              echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/tree/main/$YEAR/$MONTH) |" >> "$YEAR_PATH/index.mdx"
+              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
 
-              # ✅ 1. 무조건 _meta.json, index.mdx 생성
               echo "# 문서개요" > "$MONTH_PATH/index.mdx"
               echo "" >> "$MONTH_PATH/index.mdx"
               echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
@@ -134,29 +133,20 @@ jobs:
               echo '{' > "$MONTH_PATH/_meta.json"
               echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
 
-              # ✅ 2. mdx 파일이 있다면 목록 생성
               shopt -s nullglob
-              FOUND=0
               for FILE in "$MONTH_PATH"/*.mdx; do
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
-
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
-
                 echo "| ${DAY}일 $TITLE | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
                 echo '  ,"'$FNAME'": "'${DAY}일 $TITLE'"' >> "$MONTH_PATH/_meta.json"
-
-                FOUND=1
               done
               shopt -u nullglob
-
               echo "}" >> "$MONTH_PATH/_meta.json"
             done
-
             echo "}" >> "$YEAR_PATH/_meta.json"
           done
-
           echo "}" >> "$BASE/_meta.json"
 
       - name: Commit and Push
