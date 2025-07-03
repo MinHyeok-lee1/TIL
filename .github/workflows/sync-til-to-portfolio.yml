@@ -43,6 +43,8 @@ jobs:
             [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
             [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
 
+            # 연도 폴더도 항상 생성!
+            mkdir -p "$DEST_BASE/til-$YEAR"
             DEST_DIR="$DEST_BASE/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
@@ -69,7 +71,13 @@ jobs:
           FIRST=1
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
-            echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
+            [ "$NAME" = "index" ] && continue    # index.mdx는 meta에 추가 X
+            if [ $FIRST -eq 1 ]; then
+              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
+              FIRST=0
+            else
+              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
+            fi
           done
           echo "}" >> "$TAGS_DIR/_meta.json"
 
@@ -79,6 +87,7 @@ jobs:
 
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
+            [ "$NAME" = "index" ] && continue
             echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
@@ -101,6 +110,7 @@ jobs:
           for FILE in "${FILES[@]}"; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
+            [ "$NAME" = "index" ] && continue   # index.mdx는 meta에 추가 X
             if [ $FIRST -eq 1 ]; then
               echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
               FIRST=0
@@ -116,6 +126,7 @@ jobs:
           for FILE in "${FILES[@]}"; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
+            [ "$NAME" = "index" ] && continue
             echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
@@ -126,11 +137,11 @@ jobs:
           echo "[🏷️ 태그모음](/til/tags)" >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "## 📅 연도별" >> "$BASE/index.mdx"
-
-          # til-YYYY/_meta.json, til-YYYY/index.mdx
+          # 반드시 til-YYYY 폴더가 있으면 링크를 생성!
           for YEAR_DIR in "$BASE"/til-*; do
             [ -d "$YEAR_DIR" ] || continue
             YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
+            echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
             echo ",  \"til-$YEAR\": \"${YEAR}년 TIL\"" >> "$BASE/_meta.json"
 
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
@@ -190,15 +201,3 @@ jobs:
           fi
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
-
-      - name: Deploy to Vercel
-        if: always()
-        run: |
-          set -e
-          npm install -g vercel
-          FORCE_FLAG=""
-          if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
-            FORCE_FLAG="--force"
-          fi
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
-        working-directory: portfolio-repo
