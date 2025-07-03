@@ -100,11 +100,17 @@ jobs:
           ## 📅 연도별
           EOF
 
+          FIRST_YEAR=1
           for YEAR_PATH in "$BASE"/til-*; do
             [ -d "$YEAR_PATH" ] || continue
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
+            if [ $FIRST_YEAR -eq 1 ]; then
+              echo '  "til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
+              FIRST_YEAR=0
+            else
+              echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
+            fi
 
             echo "# 문서개요" > "$YEAR_PATH/index.mdx"
             echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
@@ -114,10 +120,18 @@ jobs:
             echo '{' > "$YEAR_PATH/_meta.json"
             echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
+            FIRST_MONTH=1
             for MONTH_PATH in "$YEAR_PATH"/til-*; do
               [ -d "$MONTH_PATH" ] || continue
               MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
-              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
+
+              echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_PATH/index.mdx"
+              if [ $FIRST_MONTH -eq 1 ]; then
+                echo '  "til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
+                FIRST_MONTH=0
+              else
+                echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
+              fi
 
               echo "# 문서개요" > "$MONTH_PATH/index.mdx"
               echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
@@ -127,16 +141,22 @@ jobs:
               echo '{' > "$MONTH_PATH/_meta.json"
               echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
 
+              FIRST_FILE=1
               for FILE in "$MONTH_PATH"/*.mdx; do
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
 
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
-                TITLE_RAW="${FNAME#*-}"
-                TITLE_CLEAN=$(echo "$TITLE_RAW" | sed 's/-/ /g')
+                TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+
+                if [ $FIRST_FILE -eq 1 ]; then
+                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
+                  FIRST_FILE=0
+                else
+                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
+                fi
 
                 echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
-                echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
               done
 
               echo "}" >> "$MONTH_PATH/_meta.json"
