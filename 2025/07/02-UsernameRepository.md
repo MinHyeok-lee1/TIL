@@ -5,7 +5,7 @@ tags: ["github"]
 summary: "UsernameRepository 정리"
 ---
 
-# 🧭 github.com/username, 왜 정리해야 할까?
+# github.com/username, 왜 정리해야 할까?
 
 개발자에게 GitHub은 단순한 코드 저장소가 아님  
 GitHub 프로필, 특히 `github.com/username` 주소는 특별 저장소로 **나를 보여주는 포트폴리오 첫 화면**임
