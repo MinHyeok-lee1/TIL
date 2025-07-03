@@ -66,7 +66,7 @@ jobs:
           mkdir -p "$TAGS_DIR"
 
           echo '{' > "$TAGS_DIR/_meta.json"
-          echo '  "index": "소개"' >> "$TAGS_DIR/_meta.json"
+          echo '  "index": "문서개요"' >> "$TAGS_DIR/_meta.json"
           FIRST=1
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
@@ -96,14 +96,14 @@ jobs:
 
           # til/_meta.json
           echo '{' > "$BASE/_meta.json"
-          echo '  "index": "소개",' >> "$BASE/_meta.json"
+          echo '  "index": "문서개요",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
           # tags/_meta.json, tags/index.mdx
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
           echo '{' > "$TAGS_DIR/_meta.json"
-          echo '  "index": "소개"' >> "$TAGS_DIR/_meta.json"
+          echo '  "index": "문서개요"' >> "$TAGS_DIR/_meta.json"
           FIRST=1
           FILES=( "$TAGS_DIR"/*.mdx )
           for FILE in "${FILES[@]}"; do
@@ -167,6 +167,7 @@ jobs:
               # til-YYYY/til-MM/_meta.json, til-YYYY/til-MM/index.mdx
               MONTH_META="$MONTH_DIR/_meta.json"
               echo "{" > "$MONTH_META"
+              echo '  "index": "문서개요",' >> "$MONTH_META"
               FIRST_FILE=1
               FILES=( "$MONTH_DIR"/*.mdx )
               for FILE in "${FILES[@]}"; do
