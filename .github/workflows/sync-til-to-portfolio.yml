@@ -79,19 +79,20 @@ jobs:
           repository: MinHyeok-lee1/MinHyeok-lee1-portfolio
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
+
       - name: Sync and convert ${{ matrix.year }}
         run: |
           set -e
           YEAR=${{ matrix.year }}
 
-          echo "🔁 Finding all .md files in $YEAR"
-          find "til-repo/$YEAR" -type f -name "*.md" | while read FILE; do
-            REL_PATH="${FILE#til-repo/}"                     # e.g. 2025/07/02-foo.md
-            REL_PATH_NOEXT="${REL_PATH%.md}"                 # e.g. 2025/07/02-foo
+          echo "🔍 Finding all .md files in til-repo/$YEAR"
+          find til-repo/$YEAR -type f -name "*.md" | while read FILE; do
+            REL_PATH="${FILE#til-repo/}"  # e.g., 2025/07/02-Username-repository.md
+            REL_PATH_NOEXT="${REL_PATH%.md}"
             DEST_PATH="portfolio-repo/src/pages/til/til-${REL_PATH_NOEXT}.mdx"
             mkdir -p "$(dirname "$DEST_PATH")"
+            echo "📄 Copying $FILE → $DEST_PATH"
             cp "$FILE" "$DEST_PATH"
-            echo "✅ Copied: $REL_PATH → $DEST_PATH"
           done
 
   finalize:
