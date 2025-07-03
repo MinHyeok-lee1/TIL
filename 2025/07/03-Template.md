@@ -7,30 +7,28 @@ summary: "GitHub의 다양한 템플릿 기능(issue, PR, workflow 등)에 대�
 
 # GitHub Template
 
-GitHub에서는 프로젝트의 일관성과 협업 효율을 높이기 위해 다양한 템플릿 기능을 제공  
-주로 사용되는 템플릿은 다음과 같음
+GitHub를 사용하며 프로젝트를 진행하다 보면, 이슈와 PR이 무작정 쌓이면서 관리가 어려워지는 경험을 누구나 한 번쯤은 겪었을 것  
+프로젝트를 체계적으로 관리하고 협업의 효율을 높일 수 있는 **GitHub 템플릿**에 대해 정리
 
 ---
 
 ## ✅ Issue Template
 
-### 📍 목적
+### 📍 사용 이유
 
-이슈 등록 시 일정한 양식으로 버그 리포트, 기능 요청 등을 받기 위해 사용
+Issue 템플릿을 사용하면, 버그 리포트나 새로운 기능 요청 등을 일정한 양식으로 받을 수 있어 효율적인 관리와 신속한 대응이 가능
 
-### 📁 위치
+### 📁 파일 위치
 
 ```bash
-
-.github/ISSUE\_TEMPLATE/
-
+.github/ISSUE_TEMPLATE/
 ```
 
 ### 📄 예시 (`bug_report.yml`)
 
 ```yaml
 name: 🐛 Bug Report
-description: 버그 발생 시 작성해주세요.
+description: 발견한 버그에 대해 알려주세요.
 title: "[BUG] "
 labels: ["bug"]
 body:
@@ -46,7 +44,7 @@ body:
     id: description
     attributes:
       label: 문제 설명
-      description: 문제가 발생한 상황을 구체적으로 적어주세요.
+      description: 발생한 문제를 최대한 구체적으로 적어주세요.
     validations:
       required: true
 ```
@@ -55,11 +53,11 @@ body:
 
 ## ✅ Pull Request Template
 
-### 📍 목적
+### 📍 리뷰의 질을 높이는 방법
 
-PR 작성 시 변경 요약, 관련 이슈, 체크리스트 등을 안내해 리뷰 품질을 높이기 위함
+PR 템플릿을 통해 코드 변경의 의도를 명확히 전달하고, 관련된 이슈와 체크리스트를 함께 작성하면 코드 리뷰 품질이 향상
 
-### 📁 위치
+### 📁 파일 위치
 
 ```bash
 .github/pull_request_template.md
@@ -70,7 +68,7 @@ PR 작성 시 변경 요약, 관련 이슈, 체크리스트 등을 안내해 리
 ```markdown
 ## ✨ 변경 사항
 
-- 어떤 점을 변경했는지 간략히 기술
+- 변경된 사항을 간략히 설명해주세요.
 
 ## 📌 관련 이슈
 
@@ -78,20 +76,20 @@ PR 작성 시 변경 요약, 관련 이슈, 체크리스트 등을 안내해 리
 
 ## ✅ 체크리스트
 
-- [ ] 테스트를 모두 통과함
-- [ ] 문서화가 완료됨
-- [ ] 관련 이슈와 연결됨
+- [ ] 모든 테스트가 통과했나요?
+- [ ] 문서화가 완료되었나요?
+- [ ] 관련된 이슈가 연결되었나요?
 ```
 
 ---
 
 ## ✅ Workflow Template (Reusable Workflows)
 
-### 📍 목적
+### 📍 워크플로우 재사용의 강력한 이점
 
-여러 리포지토리에서 공통된 GitHub Actions 워크플로우를 재사용하기 위해
+Reusable Workflows를 사용하면 여러 리포지토리에서 공통된 GitHub Actions 워크플로우를 쉽게 공유하고 재사용할 수 있음
 
-### 📁 위치
+### 📁 파일 위치
 
 ```bash
 .github/workflows/template.yml
@@ -115,17 +113,18 @@ jobs:
 
 ---
 
-## ✅ 기타 템플릿
+## ✅ 알아두면 유용한 기타 템플릿
 
-| 종류          | 위치                             | 설명                               |
-| ------------- | -------------------------------- | ---------------------------------- |
-| `FUNDING.yml` | `.github/FUNDING.yml`            | GitHub Sponsors, Patreon 등 연결용 |
-| `CODEOWNERS`  | `.github/CODEOWNERS` 또는 `root` | 코드 리뷰 자동 지정자 등록         |
-| `SECURITY.md` | `.github/SECURITY.md`            | 보안 이슈 신고 방법 문서           |
+GitHub에서는 이 외에도 프로젝트 운영에 도움을 주는 다양한 템플릿을 제공
+
+| 종류          | 위치                                    | 설명                               |
+| ------------- | --------------------------------------- | ---------------------------------- |
+| `FUNDING.yml` | `.github/FUNDING.yml`                   | GitHub Sponsors, Patreon 등 연결용 |
+| `CODEOWNERS`  | `.github/CODEOWNERS` 또는 루트 디렉터리 | 코드 리뷰 시 자동 리뷰어 지정      |
+| `SECURITY.md` | `.github/SECURITY.md`                   | 보안 이슈 신고 방법 안내           |
 
 ---
 
-## 🔚 마무리
+## 🔚 GitHub 템플릿, 협업을 더 쉽고 명확하게 작성
 
-GitHub 템플릿은 협업의 질을 높이고, 오픈소스 프로젝트를 체계적으로 운영하는 데 매우 유용한 기능  
-특히 팀 작업, PR 리뷰, 외부 기여자가 있는 프로젝트에선 적극적인 활용이 필수
+GitHub에서 제공하는 다양한 템플릿 기능을 잘 활용하면 프로젝트 관리가 쉬워지고, 팀원 및 외부 기여자와의 협업 효율도 극대화 됨
