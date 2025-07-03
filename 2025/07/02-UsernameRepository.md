@@ -8,7 +8,7 @@ summary: "특별 저장소, Username Repository 정리"
 # Username Repository
 
 개발자에게 GitHub은 단순한 코드 저장소가 아님  
-사용자의 이름으로 만드는 Repository는 특별 저장소이다 해당 저장소 github.com/username은 깔끔하게 정리하는게 좋음  
+사용자의 이름으로 만드는 Repository는 특별 저장소이고 해당 저장소 github.com/username은 깔끔하게 정리하는게 좋음  
 GitHub 프로필, 특히 `github.com/username` 주소는 특별 저장소로 **나를 보여주는 포트폴리오 첫 화면**임
 
 ---
