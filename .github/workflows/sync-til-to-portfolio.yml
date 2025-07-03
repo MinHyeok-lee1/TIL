@@ -121,9 +121,10 @@ jobs:
             echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
             FIRST_MONTH=1
-            for MONTH_PATH in "$YEAR_PATH"/til-*; do
+                        for MONTH_PATH in "$YEAR_PATH"/til-*; do
               [ -d "$MONTH_PATH" ] || continue
-              MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
+              MONTH_DIR=$(basename "$MONTH_PATH")   # til-07
+              MONTH=$(echo "$MONTH_DIR" | cut -d'-' -f2)  # 07
 
               echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_PATH/index.mdx"
               if [ $FIRST_MONTH -eq 1 ]; then
@@ -142,6 +143,7 @@ jobs:
               echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
 
               FIRST_FILE=1
+              shopt -s nullglob
               for FILE in "$MONTH_PATH"/*.mdx; do
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
@@ -158,6 +160,7 @@ jobs:
 
                 echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
               done
+              shopt -u nullglob
 
               echo "}" >> "$MONTH_PATH/_meta.json"
             done
