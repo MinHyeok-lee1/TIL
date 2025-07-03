@@ -3,7 +3,7 @@ name: 🔄 Sync TIL to Portfolio
 on:
   push:
     branches: [main]
-    paths: ["**/*.md"]
+    paths: ["**/*.md", "**/*.mdx"]
   workflow_dispatch:
 
 jobs:
@@ -31,6 +31,7 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
+          set -e
           echo "🔍 Working directory: $PWD"
           echo "📂 Contents of til-repo:"
           ls -al til-repo
@@ -51,6 +52,7 @@ jobs:
       - name: Detect deleted files
         id: detect-deletion
         run: |
+          set -e
           cd til-repo
           git remote remove origin || true
           git remote add origin https://github.com/MinHyeok-lee1/TIL.git
@@ -90,10 +92,12 @@ jobs:
 
       - name: Sync and convert ${{ matrix.year }}
         run: |
+          set -e
           YEAR=${{ matrix.year }}
           for MONTH in $(find "til-repo/$YEAR" -mindepth 1 -maxdepth 1 -type d -regex "til-repo/$YEAR/[0-9]{2}" -exec basename {} \;); do
+            echo "📆 Syncing $YEAR/$MONTH"
             mkdir -p "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
-            cp til-repo/$YEAR/$MONTH/*.md "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/" || true
+            cp til-repo/$YEAR/$MONTH/*.md "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/" || echo "❌ No .md files found for $YEAR/$MONTH"
           done
 
           find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
@@ -236,10 +240,11 @@ jobs:
       - name: Deploy to Vercel
         if: always()
         run: |
+          set -e
           npm install -g vercel
           FORCE_FLAG=""
           if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
             FORCE_FLAG="--force"
           fi
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
         working-directory: portfolio-repo
