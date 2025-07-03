@@ -168,3 +168,15 @@ jobs:
           fi
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
+
+      - name: Deploy to Vercel
+        if: always()
+        run: |
+          set -e
+          npm install -g vercel
+          FORCE_FLAG=""
+          if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
+        working-directory: portfolio-repo
