@@ -63,7 +63,7 @@ jobs:
             cp til-repo/$YEAR/$MONTH/*.md "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/" || true
           done
 
-          find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
+          find portfolio-repo/src/pages/til/til-$YEAR -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
     needs: [build-years]
