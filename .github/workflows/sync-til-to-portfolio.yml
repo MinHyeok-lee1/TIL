@@ -28,7 +28,10 @@ jobs:
           echo "📂 Contents of til-repo:"
           ls -R til-repo
 
-          YEARS=$(find til-repo -mindepth 2 -maxdepth 2 -type f -name '*.md' | cut -d'/' -f2 | sort -u)
+          echo "🧪 All .md files:"
+          find til-repo -type f -name '*.md'
+
+          YEARS=$(find til-repo -type f -name '*.md' | awk -F'/' '{print $2}' | sort -u)
           echo "📅 Found years: $YEARS"
 
           if [ -z "$YEARS" ]; then
