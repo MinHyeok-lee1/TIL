@@ -98,6 +98,11 @@ jobs:
             cp "$FILE" "$DEST_PATH"
           done
 
+      - name: Force add to ensure Git tracks all updates
+        run: |
+          cd portfolio-repo
+          git add src/pages/til
+
   finalize:
     needs: [build-years]
     if: ${{ always() }}
