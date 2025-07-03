@@ -31,7 +31,7 @@ jobs:
           mkdir -p "$DEST_BASE"
 
           # 복사 및 .md → .mdx 변환
-          find "$SRC_BASE" -type f -name "*.md" | while read FILE; do
+          find "$SRC_BASE" -type f -name "*.md" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"  # e.g. 2025/07/02-test.md
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
