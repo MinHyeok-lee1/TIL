@@ -1,3 +1,10 @@
+---
+title: "Username-Repository"
+date: "2025-07-02"
+tags: ["github"]
+summary: "Username-Repository 정리"
+---
+
 # 🧭 github.com/username, 왜 정리해야 할까?
 
 개발자에게 GitHub은 단순한 코드 저장소가 아님  
