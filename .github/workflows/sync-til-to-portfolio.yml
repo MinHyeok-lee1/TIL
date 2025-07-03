@@ -113,8 +113,26 @@ jobs:
 
       - name: Clean old _meta.json and index.mdx files
         run: |
-          find portfolio-repo/src/pages/til -name '_meta.json' -delete
-          find portfolio-repo/src/pages/til -name 'index.mdx' -delete
+          META_COUNT=$(find portfolio-repo/src/pages/til -name '_meta.json' | wc -l)
+          INDEX_COUNT=$(find portfolio-repo/src/pages/til -name 'index.mdx' | wc -l)
+
+          echo "🧹 Found $META_COUNT _meta.json files"
+          echo "🧹 Found $INDEX_COUNT index.mdx files"
+
+          if [ "$META_COUNT" -gt 0 ]; then
+            find portfolio-repo/src/pages/til -name '_meta.json' -delete
+            echo "✅ Deleted _meta.json files"
+          else
+            echo "⚠️ No _meta.json files found"
+          fi
+
+          if [ "$INDEX_COUNT" -gt 0 ]; then
+            find portfolio-repo/src/pages/til -name 'index.mdx' -delete
+            echo "✅ Deleted index.mdx files"
+          else
+            echo "⚠️ No index.mdx files found"
+          fi
+
       - name: Create index.mdx and _meta.json
         run: |
           BASE="portfolio-repo/src/pages/til"
