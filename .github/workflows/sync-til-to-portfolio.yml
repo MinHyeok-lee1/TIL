@@ -125,14 +125,14 @@ jobs:
           mkdir -p "$BASE"
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "문서개요",' >> "$BASE/_meta.json"
-          echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
+          echo '  "til-tags": "태그모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 최고의 성장으로 이어진다.
 
-          - [🏷️ 태그모음](/til/tags)
+          - [🏷️ 태그모음](/til/til-tags)
 
           ## 📅 연도별
 
@@ -236,21 +236,9 @@ jobs:
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
 
-          # 강제 추적 + 변경 확인
-          git add -A
-          echo "📄 Git Status:"
-          git status
-          echo "📄 Git Diff:"
-          git diff --cached
+          git add .
+          git diff --cached --exit-code && echo "✅ No content changes." && echo "should_force=false" >> "$GITHUB_OUTPUT" && exit 0
 
-          # 변경 없으면 종료
-          if git diff --cached --quiet; then
-            echo "✅ No content changes."
-            echo "should_force=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # 변경 있으면 커밋
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
           echo "should_force=${{ needs.setup.outputs.hasDeletions }}" >> "$GITHUB_OUTPUT"
