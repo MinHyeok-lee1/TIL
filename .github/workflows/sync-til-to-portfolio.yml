@@ -92,6 +92,7 @@ jobs:
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
+
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 꾸준한 성장으로 이어진다.
@@ -101,49 +102,36 @@ jobs:
           ## 📅 연도별
           EOF
 
-          FIRST_YEAR=1
-          for YEAR_PATH in $(find "$BASE" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
-            YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
+          for YEAR_DIR in $(find "$BASE" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
+            YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
 
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            if [ $FIRST_YEAR -eq 1 ]; then
-              echo '  "til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
-              FIRST_YEAR=0
-            else
-              echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
-            fi
+            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
-            echo "# 문서개요" > "$YEAR_PATH/index.mdx"
-            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
-            echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_PATH/index.mdx"
-            echo "|----|------------------|------------------|" >> "$YEAR_PATH/index.mdx"
+            echo "# 문서개요" > "$YEAR_DIR/index.mdx"
+            echo "$YEAR년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
+            echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_DIR/index.mdx"
+            echo "|----|------------------|------------------|" >> "$YEAR_DIR/index.mdx"
 
-            echo '{' > "$YEAR_PATH/_meta.json"
-            echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
+            echo '{' > "$YEAR_DIR/_meta.json"
+            echo '  "index": "문서개요"' >> "$YEAR_DIR/_meta.json"
 
-            FIRST_MONTH=1
-            for MONTH_PATH in $(find "$YEAR_PATH" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
-              MONTH=$(basename "$MONTH_PATH" | cut -d'-' -f2)
+            for MONTH_DIR in $(find "$YEAR_DIR" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
+              MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
 
-              echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_PATH/index.mdx"
-              if [ $FIRST_MONTH -eq 1 ]; then
-                echo '  "til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
-                FIRST_MONTH=0
-              else
-                echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
-              fi
+              echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_DIR/index.mdx"
+              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_DIR/_meta.json"
 
-              echo "# 문서개요" > "$MONTH_PATH/index.mdx"
-              echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
-              echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_PATH/index.mdx"
-              echo "|-------|------------------|------------------|" >> "$MONTH_PATH/index.mdx"
+              echo "# 문서개요" > "$MONTH_DIR/index.mdx"
+              echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
+              echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
+              echo "|-------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
 
-              echo '{' > "$MONTH_PATH/_meta.json"
-              echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
+              echo '{' > "$MONTH_DIR/_meta.json"
+              echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
 
               FIRST_FILE=1
-              shopt -s nullglob
-              for FILE in "$MONTH_PATH"/*.mdx; do
+              for FILE in "$MONTH_DIR"/*.mdx; do
                 [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
@@ -151,21 +139,20 @@ jobs:
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
 
-                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
+                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
 
                 if [ $FIRST_FILE -eq 1 ]; then
-                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
+                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
                   FIRST_FILE=0
                 else
-                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
+                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
                 fi
               done
-              shopt -u nullglob
 
-              echo "}" >> "$MONTH_PATH/_meta.json"
+              echo "}" >> "$MONTH_DIR/_meta.json"
             done
 
-            echo "}" >> "$YEAR_PATH/_meta.json"
+            echo "}" >> "$YEAR_DIR/_meta.json"
           done
 
           echo "}" >> "$BASE/_meta.json"
