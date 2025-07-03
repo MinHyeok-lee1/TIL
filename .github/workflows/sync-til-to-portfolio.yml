@@ -64,7 +64,7 @@ jobs:
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
-          > 꾸준한 기록은 참로운 성장으로 이여진다.
+          > 꾸준한 기록은 꾸준한 성장으로 이어진다.
 
           [🏷️ 태그 모음](/til/tags)
 
