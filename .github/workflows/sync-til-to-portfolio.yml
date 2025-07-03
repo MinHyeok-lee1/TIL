@@ -10,6 +10,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
+      hasYears: ${{ steps.set-years.outputs.hasYears }}
       years: ${{ steps.set-years.outputs.years }}
 
     steps:
@@ -21,11 +22,21 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "years=$YEARS" >> "$GITHUB_OUTPUT"
+          YEARS_RAW=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||')
+          if [ -z "$YEARS_RAW" ]; then
+            echo "No year directories found."
+            echo "hasYears=false" >> "$GITHUB_OUTPUT"
+            echo "years=[]" >> "$GITHUB_OUTPUT"
+          else
+            YEARS_JSON=$(echo "$YEARS_RAW" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+            echo "Found years: $YEARS_JSON"
+            echo "hasYears=true" >> "$GITHUB_OUTPUT"
+            echo "years=$YEARS_JSON" >> "$GITHUB_OUTPUT"
+          fi
 
   build-years:
     needs: setup
+    if: needs.setup.outputs.hasYears == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -55,7 +66,8 @@ jobs:
           find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
-    needs: build-years
+    needs: [build-years]
+    if: always() # finalize 단계는 build-years가 건너뛰어도 실행
     runs-on: ubuntu-latest
 
     steps:
