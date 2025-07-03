@@ -87,6 +87,7 @@ jobs:
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
 
+          # til/_meta.json (index, tags)
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
@@ -98,67 +99,60 @@ jobs:
           echo "" >> "$BASE/index.mdx"
           echo "## 📅 연도별" >> "$BASE/index.mdx"
 
+          # til-YYYY/_meta.json 생성
           for YEAR_DIR in "$BASE"/til-*; do
             [ -d "$YEAR_DIR" ] || continue
             YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
-            mkdir -p "$YEAR_DIR"
-            echo '{ "index": "문서개요"' > "$YEAR_DIR/_meta.json"
 
-            echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
+            # til/_meta.json에 연도 추가 (콤마 처리)
+            echo ",  \"til-$YEAR\": \"${YEAR}년 TIL\"" >> "$BASE/_meta.json"
 
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "$YEAR년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|------------------|------------------|" >> "$YEAR_DIR/index.mdx"
 
-            echo '{' > "$YEAR_DIR/_meta.json"
-            echo '  "index": "문서개요"' >> "$YEAR_DIR/_meta.json"
+            # til-YYYY/_meta.json 생성
+            META="$YEAR_DIR/_meta.json"
+            echo "{" > "$META"
+            FIRST=1
 
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
               MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
-              mkdir -p "$MONTH_DIR"
-              echo '{ "index": "문서개요"' > "$MONTH_DIR/_meta.json"
+
+              # til-YYYY/_meta.json에 월 추가 (콤마 처리)
+              if [ $FIRST -eq 1 ]; then
+                echo "  \"til-$MONTH\": \"${MONTH}월 TIL\"" >> "$META"
+                FIRST=0
+              else
+                echo "  ,\"til-$MONTH\": \"${MONTH}월 TIL\"" >> "$META"
+              fi
 
               echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_DIR/index.mdx"
-              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_DIR/_meta.json"
 
-              echo "# 문서개요" > "$MONTH_DIR/index.mdx"
-              echo "$MONTH월의 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
-              echo "|-------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
-
-              echo '{' > "$MONTH_DIR/_meta.json"
-              echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
-           
-              FILES=("$MONTH_DIR"/*.mdx)
-                if [ "${#FILES[@]}" -eq 0 ]; then
-                  echo "}" >> "$MONTH_DIR/_meta.json"
-                  continue
-                fi
-
+              # til-YYYY/til-MM/_meta.json 생성
+              MONTH_META="$MONTH_DIR/_meta.json"
+              echo "{" > "$MONTH_META"
               FIRST_FILE=1
-              for FILE in "${FILES[@]}"; do
+              for FILE in "$MONTH_DIR"/*.mdx; do
                 [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
-
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
 
-                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
-
+                # 월별 _meta.json (콤마 처리)
                 if [ $FIRST_FILE -eq 1 ]; then
-                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                  echo "  \"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_META"
                   FIRST_FILE=0
                 else
-                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
+                  echo "  ,\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"" >> "$MONTH_META"
                 fi
               done
-              echo "}" >> "$MONTH_DIR/_meta.json"
+              echo "}" >> "$MONTH_META"
             done
-            echo "}" >> "$YEAR_DIR/_meta.json"
+            echo "}" >> "$META"
           done
           echo "}" >> "$BASE/_meta.json"
 
