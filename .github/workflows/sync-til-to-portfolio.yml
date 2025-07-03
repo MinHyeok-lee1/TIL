@@ -31,7 +31,12 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
+          echo "🔍 Working directory: $PWD"
+          echo "📂 Contents of til-repo:"
+          ls -al til-repo
+
           YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | sort)
+          echo "📅 Found years: $YEARS"
 
           if [ -z "$YEARS" ]; then
             echo "hasYears=false" >> "$GITHUB_OUTPUT"
@@ -40,11 +45,7 @@ jobs:
           fi
 
           JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          if [ "$JSON" = "[]" ]; then
-            echo "hasYears=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "hasYears=true" >> "$GITHUB_OUTPUT"
-          fi
+          echo "hasYears=true" >> "$GITHUB_OUTPUT"
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
 
       - name: Detect deleted files
