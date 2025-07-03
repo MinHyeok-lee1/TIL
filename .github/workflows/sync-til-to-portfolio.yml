@@ -23,13 +23,8 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          set -eo pipefail
-          echo "🔍 Working directory: $PWD"
-          echo "📂 Contents of til-repo:"
-          ls -al til-repo
-
+          set -e
           YEARS=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||' | sort)
-          echo "📅 Found years: $YEARS"
 
           if [ -z "$YEARS" ]; then
             echo "hasYears=false" >> "$GITHUB_OUTPUT"
@@ -40,8 +35,6 @@ jobs:
           JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "hasYears=true" >> "$GITHUB_OUTPUT"
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
-          echo "📤 Output: hasYears=true"
-          echo "📤 Output: years=$JSON"
 
       - name: Detect deleted files
         id: detect-deletion
@@ -52,11 +45,9 @@ jobs:
           git remote add origin https://github.com/MinHyeok-lee1/TIL.git
           git fetch origin main || true
 
-          DELETED=$(git diff --name-only --diff-filter=D origin/main...HEAD | grep -E '\.md$' || true)
+          DELETED=$(git diff --name-only --diff-filter=D origin/main...HEAD | grep -E '\\.md$' || true)
 
           if [ -n "$DELETED" ]; then
-            echo "Deletions detected:"
-            echo "$DELETED"
             echo "hasDeletions=true" >> "$GITHUB_OUTPUT"
           else
             echo "hasDeletions=false" >> "$GITHUB_OUTPUT"
@@ -64,21 +55,14 @@ jobs:
 
   build-years:
     needs: setup
-    if: always()
+    if: ${{ needs.setup.outputs.hasYears == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        year: ${{ fromJson(needs.setup.outputs.years || '[]') }}
+        year: ${{ fromJson(needs.setup.outputs.years) }}
 
     steps:
-      - name: Check if year is valid
-        run: |
-          if [ "${{ needs.setup.outputs.hasYears }}" != "true" ]; then
-            echo "❌ No valid TIL years found. Skipping."
-            exit 0
-          fi
-
       - name: Checkout TIL repo
         uses: actions/checkout@v3
         with:
@@ -96,7 +80,7 @@ jobs:
           set -e
           YEAR=${{ matrix.year }}
           for MONTH in $(find "til-repo/$YEAR" -mindepth 1 -maxdepth 1 -type d -regex "til-repo/$YEAR/[0-9]{2}" -exec basename {} \;); do
-            echo "📆 Syncing $YEAR/$MONTH"
+            echo "\ud83d\uddd3\ufe0f Syncing $YEAR/$MONTH"
             mkdir -p "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
             rsync -av --delete --include='*/' --include='*.md' --exclude='*' "til-repo/$YEAR/$MONTH/" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/"
           done
