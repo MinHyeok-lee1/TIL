@@ -34,7 +34,7 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\\.md$' | while read FILE; do
+          find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
@@ -69,16 +69,11 @@ jobs:
           FIRST=1
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
-            if [ $FIRST -eq 1 ]; then
-              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-              FIRST=0
-            else
-              echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-            fi
+            echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
           done
           echo "}" >> "$TAGS_DIR/_meta.json"
 
-          echo "# 🏷️ 태그 목역" > "$TAGS_DIR/index.mdx"
+          echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
           echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
 
@@ -97,9 +92,9 @@ jobs:
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
           echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
-          echo "> 꿔준한 기록은 꿔준한 성장으로 이여진다." >> "$BASE/index.mdx"
+          echo "> 꾸준한 기록은 꾸준한 성장으로 이어진다." >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
-          echo "[🏷️ 태그목역](/til/tags)" >> "$BASE/index.mdx"
+          echo "[🏷️ 태그모음](/til/tags)" >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "## 📅 연도별" >> "$BASE/index.mdx"
 
