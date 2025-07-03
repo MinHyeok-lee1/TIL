@@ -98,7 +98,6 @@ jobs:
           [🏷️ 태그모음](/til/tags)
 
           ## 📅 연도별
-
           EOF
 
           shopt -s nullglob
@@ -134,8 +133,10 @@ jobs:
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
 
+                # 제목 변환
+                RAW_TITLE="${FNAME:3}"
+                TITLE=$(echo "$RAW_TITLE" | sed 's/-/ /g')
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
-                TITLE=$(echo "${FNAME:3}" | sed 's/-/ /g')
 
                 echo "| ${DAY}일 $TITLE | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
                 echo '  ,"'$FNAME'": "'${DAY}일 $TITLE'"' >> "$MONTH_PATH/_meta.json"
