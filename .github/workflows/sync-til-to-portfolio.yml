@@ -34,7 +34,7 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
+          find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
@@ -56,33 +56,7 @@ jobs:
           done
           shopt -u nullglob
 
-      - name: Create tags/_meta.json and index.mdx
-        run: |
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
-          mkdir -p "$TAGS_DIR"
-
-          echo '{' > "$TAGS_DIR/_meta.json"
-          echo '  "index": "소개"' >> "$TAGS_DIR/_meta.json"
-          shopt -s nullglob
-          for FILE in "$TAGS_DIR"/*.mdx; do
-            NAME=$(basename "$FILE" .mdx)
-            echo '  ,"'$NAME'": "'$NAME' 태그"' >> "$TAGS_DIR/_meta.json"
-          done
-          shopt -u nullglob
-          echo "}" >> "$TAGS_DIR/_meta.json"
-
-          echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo "| 태그 | Nextra 바로가기 | GitHub 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|------------------|------------------|" >> "$TAGS_DIR/index.mdx"
-
-          shopt -s nullglob
-          for FILE in "$TAGS_DIR"/*.mdx; do
-            NAME=$(basename "$FILE" .mdx)
-            echo "| $NAME | [Nextra 바로가기](/til/tags/$NAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
-          done
-          shopt -u nullglob
-
-      - name: Create index.mdx and _meta.json files
+      - name: Create all _meta.json and index.mdx files
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
@@ -91,18 +65,15 @@ jobs:
           echo '  "index": "소개",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
-          cat <<EOF > "$BASE/index.mdx"
+          echo "# \ud83d\udcd3 Today I Learned (TIL)" > "$BASE/index.mdx"
+          echo "> 꾸준한 기록은 꾸준한 성장으로 이어진다." >> "$BASE/index.mdx"
+          echo "" >> "$BASE/index.mdx"
+          echo "[\ud83c\udff7\ufe0f 태그모음](/til/tags)" >> "$BASE/index.mdx"
+          echo "" >> "$BASE/index.mdx"
+          echo "## \ud83d\udcc5 연도별" >> "$BASE/index.mdx"
 
-          # 📓 Today I Learned (TIL)
-
-          > 꾸준한 기록은 꾸준한 성장으로 이어진다.
-
-          [🏷️ 태그모음](/til/tags)
-
-          ## 📅 연도별
-          EOF
-
-          for YEAR_DIR in $(find "$BASE" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
+          for YEAR_DIR in "$BASE"/til-*; do
+            [ -d "$YEAR_DIR" ] || continue
             YEAR=$(basename "$YEAR_DIR" | cut -d'-' -f2)
 
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
@@ -116,7 +87,8 @@ jobs:
             echo '{' > "$YEAR_DIR/_meta.json"
             echo '  "index": "문서개요"' >> "$YEAR_DIR/_meta.json"
 
-            for MONTH_DIR in $(find "$YEAR_DIR" -mindepth 1 -maxdepth 1 -type d -name "til-*"); do
+            for MONTH_DIR in "$YEAR_DIR"/til-*; do
+              [ -d "$MONTH_DIR" ] || continue
               MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
 
               echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_DIR/index.mdx"
@@ -130,7 +102,7 @@ jobs:
               echo '{' > "$MONTH_DIR/_meta.json"
               echo '  "index": "문서개요"' >> "$MONTH_DIR/_meta.json"
 
-              FIRST_FILE=1
+              shopt -s nullglob
               for FILE in "$MONTH_DIR"/*.mdx; do
                 [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
@@ -140,14 +112,9 @@ jobs:
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
 
                 echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
-
-                if [ $FIRST_FILE -eq 1 ]; then
-                  echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
-                  FIRST_FILE=0
-                else
-                  echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
-                fi
+                echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_DIR/_meta.json"
               done
+              shopt -u nullglob
 
               echo "}" >> "$MONTH_DIR/_meta.json"
             done
@@ -169,15 +136,3 @@ jobs:
           fi
           git commit -m "📝 Sync TIL to portfolio: $(date +'%Y-%m-%d')"
           git push
-
-      # - name: Deploy to Vercel
-      #   if: always()
-      #   run: |
-      #     set -e
-      #     npm install -g vercel
-      #     FORCE_FLAG=""
-      #     if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
-      #       FORCE_FLAG="--force"
-      #     fi
-      #     vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
-      #   working-directory: portfolio-repo
