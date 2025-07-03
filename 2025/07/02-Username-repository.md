@@ -1,5 +1,5 @@
 ---
-title: "Username-Repository"
+title: "UsernameRepository"
 date: "2025-07-02"
 tags: ["github"]
 summary: "Username-Repository 정리"
