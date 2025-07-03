@@ -90,10 +90,16 @@ jobs:
 
           echo "🔍 Finding all .md files in til-repo/$YEAR"
           find til-repo/$YEAR -type f -name "*.md" | while read FILE; do
-            REL_PATH="${FILE#til-repo/}"  # e.g., 2025/07/02-Username-repository.md
-            REL_PATH_NOEXT="${REL_PATH%.md}"
-            DEST_PATH="portfolio-repo/src/pages/til/til-${REL_PATH_NOEXT}.mdx"
-            mkdir -p "$(dirname "$DEST_PATH")"
+            # Extract components
+            REL_PATH="${FILE#til-repo/}"                          # e.g., 2025/07/02-Example.md
+            FILE_YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)         # 2025
+            FILE_MONTH=$(echo "$REL_PATH" | cut -d'/' -f2 | cut -d'-' -f1) # 07
+            FILE_NAME=$(basename "$REL_PATH" .md)                 # 02-Example
+
+            DEST_DIR="portfolio-repo/src/pages/til/til-$FILE_YEAR/til-$FILE_MONTH"
+            DEST_PATH="$DEST_DIR/$FILE_NAME.mdx"
+
+            mkdir -p "$DEST_DIR"
             echo "📄 Copying $FILE → $DEST_PATH"
             cp "$FILE" "$DEST_PATH"
           done
