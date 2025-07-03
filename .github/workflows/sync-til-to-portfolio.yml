@@ -138,7 +138,7 @@ jobs:
               echo '  "index": "문서개요"'
               for MONTH in "${MONTHS[@]}"; do
                 M=$(echo "$MONTH" | cut -d'-' -f2)
-                echo '  ,"'$MONTH'": "'$M'월 TIL"'
+                echo '  ,"'"$MONTH"'": "'"$M"'월 TIL"'
               done
               echo "}"
             } > "$YEAR_DIR/_meta.json"
@@ -154,10 +154,12 @@ jobs:
               echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
             done
 
-            # til-YYYY/til-MM/_meta.json
+            # til-YYYY/til-MM/_meta.json & til-YYYY/til-MM/index.mdx
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
+              # _meta.json
               MONTH_META_ITEMS=()
+              FILES=()
               for FILE in "$MONTH_DIR"/*.mdx; do
                 [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
@@ -165,6 +167,7 @@ jobs:
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
                 MONTH_META_ITEMS+=("\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"")
+                FILES+=("$FNAME")
               done
               {
                 echo "{"
@@ -174,6 +177,17 @@ jobs:
                 done
                 echo "}"
               } > "$MONTH_DIR/_meta.json"
+
+              # index.mdx(월별)
+              MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
+              echo "# 문서개요" > "$MONTH_DIR/index.mdx"
+              echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
+              echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
+              echo "|------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
+              for FNAME in "${FILES[@]}"; do
+                TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+                echo "| $TITLE_CLEAN | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
+              done
             done
           done
 
