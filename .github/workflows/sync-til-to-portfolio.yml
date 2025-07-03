@@ -86,10 +86,13 @@ jobs:
         run: |
           BASE="portfolio-repo/src/pages/til"
           mkdir -p "$BASE"
+
+          # til/_meta.json
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
           echo '  "tags": "태그모음"' >> "$BASE/_meta.json"
 
+          # til/index.mdx
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
@@ -100,17 +103,14 @@ jobs:
           ## 📅 연도별
           EOF
 
-          FIRST_YEAR=1
+          shopt -s nullglob
+
           for YEAR_PATH in "$BASE"/til-*; do
             [ -d "$YEAR_PATH" ] || continue
             YEAR=$(basename "$YEAR_PATH" | cut -d'-' -f2)
+
             echo "- [$YEAR년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            if [ $FIRST_YEAR -eq 1 ]; then
-              echo '  "til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
-              FIRST_YEAR=0
-            else
-              echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
-            fi
+            echo '  ,"til-'$YEAR'": "'$YEAR'년 TIL"' >> "$BASE/_meta.json"
 
             echo "# 문서개요" > "$YEAR_PATH/index.mdx"
             echo "$YEAR년 TIL 기록입니다." >> "$YEAR_PATH/index.mdx"
@@ -120,19 +120,12 @@ jobs:
             echo '{' > "$YEAR_PATH/_meta.json"
             echo '  "index": "문서개요"' >> "$YEAR_PATH/_meta.json"
 
-            FIRST_MONTH=1
-                        for MONTH_PATH in "$YEAR_PATH"/til-*; do
-              [ -d "$MONTH_PATH" ] || continue
-              MONTH_DIR=$(basename "$MONTH_PATH")   # til-07
-              MONTH=$(echo "$MONTH_DIR" | cut -d'-' -f2)  # 07
+            for MONTH_PATH in $(find "$YEAR_PATH" -maxdepth 1 -mindepth 1 -type d -name "til-*"); do
+              MONTH_DIR=$(basename "$MONTH_PATH")
+              MONTH=$(echo "$MONTH_DIR" | cut -d'-' -f2)
 
               echo "- [$MONTH월 TIL](/til/til-$YEAR/til-$MONTH)" >> "$YEAR_PATH/index.mdx"
-              if [ $FIRST_MONTH -eq 1 ]; then
-                echo '  "til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
-                FIRST_MONTH=0
-              else
-                echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
-              fi
+              echo '  ,"til-'$MONTH'": "'$MONTH'월 TIL"' >> "$YEAR_PATH/_meta.json"
 
               echo "# 문서개요" > "$MONTH_PATH/index.mdx"
               echo "${MONTH}월의 TIL 기록입니다." >> "$MONTH_PATH/index.mdx"
@@ -143,13 +136,15 @@ jobs:
               echo '  "index": "문서개요"' >> "$MONTH_PATH/_meta.json"
 
               FIRST_FILE=1
-              shopt -s nullglob
               for FILE in "$MONTH_PATH"/*.mdx; do
+                [ -f "$FILE" ] || continue
                 FNAME=$(basename "$FILE" .mdx)
                 [ "$FNAME" = "index" ] && continue
 
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+
+                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
 
                 if [ $FIRST_FILE -eq 1 ]; then
                   echo '  "'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
@@ -157,10 +152,7 @@ jobs:
                 else
                   echo '  ,"'$FNAME'": "'${DAY}일 ${TITLE_CLEAN}'"' >> "$MONTH_PATH/_meta.json"
                 fi
-
-                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md) |" >> "$MONTH_PATH/index.mdx"
               done
-              shopt -u nullglob
 
               echo "}" >> "$MONTH_PATH/_meta.json"
             done
