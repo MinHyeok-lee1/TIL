@@ -86,17 +86,22 @@ jobs:
           YEAR=${{ matrix.year }}
 
           for MONTH_PATH in til-repo/$YEAR/*; do
-            [ -d "$MONTH_PATH" ] || continue
-            MONTH=$(basename "$MONTH_PATH")
+              [ -d "$MONTH_PATH" ] || continue
+              MONTH=$(basename "$MONTH_PATH")
 
-            echo "🗂️ Syncing $YEAR/$MONTH"
-            DEST_DIR="portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
-            mkdir -p "$DEST_DIR"
+              echo "🗂️ Syncing $YEAR/$MONTH"
+              DEST_DIR="portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
+              mkdir -p "$DEST_DIR"
 
-            echo "📂 MONTH_PATH: $MONTH_PATH"
-            ls -al "$MONTH_PATH" || echo "❌ Failed to list $MONTH_PATH"
+              echo "📂 MONTH_PATH: $MONTH_PATH"
+              ls -al "$MONTH_PATH" || echo "❌ Failed to list $MONTH_PATH"
 
-            rsync -av --include='*/' --include='*.md' --exclude='*' "$MONTH_PATH/" "$DEST_DIR/"
+              find "til-repo/$YEAR" -type f -name "*.md" | while read FILE; do
+              REL_PATH="${FILE#til-repo/}"
+              DEST_PATH="portfolio-repo/src/pages/til/til-${REL_PATH%.*}.mdx"
+              mkdir -p "$(dirname "$DEST_PATH")"
+              cp "$FILE" "$DEST_PATH"
+            done
           done
 
           echo "🔁 Converting .md → .mdx"
