@@ -23,7 +23,7 @@ jobs:
       - name: Find TIL years (for matrix)
         id: set-years
         run: |
-          set -e
+          set -eo pipefail
           echo "🔍 Working directory: $PWD"
           echo "📂 Contents of til-repo:"
           ls -al til-repo
@@ -40,6 +40,8 @@ jobs:
           JSON=$(echo "$YEARS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "hasYears=true" >> "$GITHUB_OUTPUT"
           echo "years=$JSON" >> "$GITHUB_OUTPUT"
+          echo "📤 Output: hasYears=true"
+          echo "📤 Output: years=$JSON"
 
       - name: Detect deleted files
         id: detect-deletion
@@ -59,9 +61,10 @@ jobs:
           else
             echo "hasDeletions=false" >> "$GITHUB_OUTPUT"
           fi
+
   build-years:
     needs: setup
-    if: needs.setup.outputs.hasYears == 'true'
+    if: always()
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -69,6 +72,13 @@ jobs:
         year: ${{ fromJson(needs.setup.outputs.years || '[]') }}
 
     steps:
+      - name: Check if year is valid
+        run: |
+          if [ "${{ needs.setup.outputs.hasYears }}" != "true" ]; then
+            echo "❌ No valid TIL years found. Skipping."
+            exit 0
+          fi
+
       - name: Checkout TIL repo
         uses: actions/checkout@v3
         with:
@@ -222,14 +232,14 @@ jobs:
           git push
           echo "should_force=${{ needs.setup.outputs.hasDeletions }}" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy to Vercel
-        if: always()
-        run: |
-          set -e
-          npm install -g vercel
-          FORCE_FLAG=""
-          if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
-            FORCE_FLAG="--force"
-          fi
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
-        working-directory: portfolio-repo
+      # - name: Deploy to Vercel
+      #   if: always()
+      #   run: |
+      #     set -e
+      #     npm install -g vercel
+      #     FORCE_FLAG=""
+      #     if [ "${{ steps.pushcheck.outputs.should_force }}" == "true" ]; then
+      #       FORCE_FLAG="--force"
+      #     fi
+      #     vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes $FORCE_FLAG --debug
+      #   working-directory: portfolio-repo
