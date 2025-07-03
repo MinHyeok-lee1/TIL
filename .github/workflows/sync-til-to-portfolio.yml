@@ -177,7 +177,7 @@ jobs:
 
       - name: Convert tags and generate tag index
         run: |
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          TAGS_DIR="portfolio-repo/src/pages/til/til-tags"
           mkdir -p "$TAGS_DIR"
 
           echo '# 문서개요
@@ -216,7 +216,7 @@ jobs:
               fi
             done
 
-            echo "| $TAG | [Nextra 바로가기](/til/tags/$TAG) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$TAG.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $TAG | [Nextra 바로가기](/til/til-tags/$TAG) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$TAG.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Commit and Push
