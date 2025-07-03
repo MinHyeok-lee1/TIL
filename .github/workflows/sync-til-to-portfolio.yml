@@ -13,6 +13,8 @@ jobs:
     outputs:
       hasMonths: ${{ steps.set-months.outputs.hasMonths }}
       months: ${{ steps.set-months.outputs.months }}
+      hasFiles: ${{ steps.set-files.outputs.hasFiles }}
+      files: ${{ steps.set-files.outputs.files }}
 
     steps:
       - name: Checkout TIL repository
@@ -68,8 +70,57 @@ jobs:
           rsync -av --include='*/' --include='*.md' --exclude='*' "$SRC/" "$DEST/"
           find "$DEST" -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
+      - name: Detect changed files (git diff)
+        id: set-files
+        run: |
+          cd til-repo
+          git remote add origin https://github.com/MinHyeok-lee1/TIL.git || true
+          git fetch origin main
+          FILES=$(git diff --name-only origin/main...HEAD | grep -E '^202[0-9]/[0-9]{2}/.*\\.md$' || true)
+          if [ -z "$FILES" ]; then
+            echo "hasFiles=false" >> $GITHUB_OUTPUT
+            echo "files=[]" >> $GITHUB_OUTPUT
+          else
+            JSON=$(echo "$FILES" | jq -R . | jq -s .)
+            echo "hasFiles=true" >> $GITHUB_OUTPUT
+            echo "files=$JSON" >> $GITHUB_OUTPUT
+          fi
+
+  sync-files:
+    needs: setup
+    if: needs.setup.outputs.hasMonths != 'true' && needs.setup.outputs.hasFiles == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJson(needs.setup.outputs.files) }}
+
+    steps:
+      - name: Checkout TIL repo
+        uses: actions/checkout@v3
+        with:
+          path: til-repo
+
+      - name: Checkout Portfolio repo
+        uses: actions/checkout@v3
+        with:
+          repository: MinHyeok-lee1/MinHyeok-lee1-portfolio
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          path: portfolio-repo
+
+      - name: Sync file ${{ matrix.file }}
+        run: |
+          FILE="${{ matrix.file }}"
+          YEAR=$(echo "$FILE" | cut -d'/' -f1)
+          MONTH=$(echo "$FILE" | cut -d'/' -f2)
+          NAME=$(basename "$FILE" .md)
+          SRC="til-repo/$FILE"
+          DEST_DIR="portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
+          mkdir -p "$DEST_DIR"
+          cp "$SRC" "$DEST_DIR/$NAME.mdx"
+
   finalize:
-    needs: [build-months]
+    needs: [build-months, sync-files]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
