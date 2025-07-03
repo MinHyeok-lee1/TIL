@@ -42,6 +42,10 @@ jobs:
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
+      - name: Clean old til-tags directory
+        run: |
+          rm -rf portfolio-repo/src/pages/til/til-tags
+
       - name: Create index.mdx and _meta.json files
         run: |
           BASE="portfolio-repo/src/pages/til"
