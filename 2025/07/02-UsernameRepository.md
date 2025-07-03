@@ -2,7 +2,7 @@
 title: "UsernameRepository"
 date: "2025-07-02"
 tags: ["github"]
-summary: "Username-Repository 정리"
+summary: "UsernameRepository 정리"
 ---
 
 # 🧭 github.com/username, 왜 정리해야 할까?
