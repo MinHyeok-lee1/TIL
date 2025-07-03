@@ -94,8 +94,6 @@ jobs:
       - name: Create all _meta.json and index.mdx files
         run: |
           BASE="portfolio-repo/src/pages/til"
-
-          # til/_meta.json
           YEARS=()
           for YEAR_DIR in "$BASE"/til-*; do
             [ -d "$YEAR_DIR" ] || continue
@@ -111,7 +109,6 @@ jobs:
             echo "}"
           } > "$BASE/_meta.json"
 
-          # til index.mdx
           echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "> 꾸준한 기록은 최고의 성장으로 이어진다." >> "$BASE/index.mdx"
@@ -123,11 +120,8 @@ jobs:
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
           done
 
-          # til-YYYY/_meta.json, til-YYYY/index.mdx
           for YEAR in "${YEARS[@]}"; do
             YEAR_DIR="$BASE/til-$YEAR"
-
-            # til-YYYY/_meta.json
             MONTHS=()
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
@@ -143,7 +137,6 @@ jobs:
               echo "}"
             } > "$YEAR_DIR/_meta.json"
 
-            # til-YYYY/index.mdx
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
             echo "| 월 | Nextra 바로가기 | GitHub 바로가기 |" >> "$YEAR_DIR/index.mdx"
@@ -154,10 +147,9 @@ jobs:
               echo "| ${MONTH}월 | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
             done
 
-            # til-YYYY/til-MM/_meta.json & til-YYYY/til-MM/index.mdx
+            # 월별 index.mdx에 일수, 제목 표시 추가
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
-              # _meta.json
               MONTH_META_ITEMS=()
               FILES=()
               for FILE in "$MONTH_DIR"/*.mdx; do
@@ -178,15 +170,15 @@ jobs:
                 echo "}"
               } > "$MONTH_DIR/_meta.json"
 
-              # index.mdx(월별)
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | Nextra 바로가기 | GitHub 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|------------------|------------------|" >> "$MONTH_DIR/index.mdx"
               for FNAME in "${FILES[@]}"; do
+                DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                echo "| $TITLE_CLEAN | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
+                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra 바로가기](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) | [GitHub 바로가기](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
               done
             done
           done
