@@ -48,14 +48,14 @@ jobs:
           mkdir -p "$BASE"
           echo '{' > "$BASE/_meta.json"
           echo '  "index": "소개",' >> "$BASE/_meta.json"
-          echo '  "til-tags": "태그 모음"' >> "$BASE/_meta.json"
+          echo '  "tags": "태그 모음"' >> "$BASE/_meta.json"
 
           cat <<EOF > "$BASE/index.mdx"
           # 📓 Today I Learned (TIL)
 
           > 꾸준한 기록은 참로운 성장으로 이여진다.
 
-          [🏷️ 태그 모음](/til/til-tags)
+          [🏷️ 태그 모음](/til/tags)
 
           ## 📅 연도별
 
