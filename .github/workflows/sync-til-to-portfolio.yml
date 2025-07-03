@@ -85,24 +85,21 @@ jobs:
           set -e
           YEAR=${{ matrix.year }}
 
-          # 월 폴더를 무조건 리스트업 (07 등 포함)
           for MONTH_PATH in til-repo/$YEAR/*; do
-            [ -d "$MONTH_PATH" ] || continue  # 디렉토리만
+            [ -d "$MONTH_PATH" ] || continue
             MONTH=$(basename "$MONTH_PATH")
 
             echo "🗂️ Syncing $YEAR/$MONTH"
             DEST_DIR="portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
 
-            # 실제 .md 파일이 있으면 복사
-            shopt -s nullglob
-            FILES=("$MONTH_PATH"/*.md)
-            if [ ${#FILES[@]} -gt 0 ]; then
-              rsync -av --include='*/' --include='*.md' --exclude='*' "$MONTH_PATH/" "$DEST_DIR/"
-            fi
+            echo "📂 MONTH_PATH: $MONTH_PATH"
+            ls -al "$MONTH_PATH" || echo "❌ Failed to list $MONTH_PATH"
+
+            rsync -av --include='*/' --include='*.md' --exclude='*' "$MONTH_PATH/" "$DEST_DIR/"
           done
 
-          # .md → .mdx 변환
+          echo "🔁 Converting .md → .mdx"
           find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" -exec bash -c 'mv "$0" "${0%.md}.mdx"' {} \;
 
   finalize:
