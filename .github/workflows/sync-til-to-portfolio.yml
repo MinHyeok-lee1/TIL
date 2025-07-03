@@ -24,14 +24,12 @@ jobs:
         run: |
           YEARS_RAW=$(find til-repo -mindepth 1 -maxdepth 1 -type d -regex 'til-repo/[0-9]{4}' | sed 's|til-repo/||')
           if [ -z "$YEARS_RAW" ]; then
-            echo "No year directories found."
-            echo "hasYears=false" >> "$GITHUB_OUTPUT"
-            echo "years=[]" >> "$GITHUB_OUTPUT"
+            echo "hasYears=false" >> $GITHUB_OUTPUT
+            echo "years=[]" >> $GITHUB_OUTPUT
           else
             YEARS_JSON=$(echo "$YEARS_RAW" | jq -R -s -c 'split("\n") | map(select(. != ""))')
-            echo "Found years: $YEARS_JSON"
-            echo "hasYears=true" >> "$GITHUB_OUTPUT"
-            echo "years=$YEARS_JSON" >> "$GITHUB_OUTPUT"
+            echo "hasYears=true" >> $GITHUB_OUTPUT
+            echo "years=${YEARS_JSON}" >> $GITHUB_OUTPUT
           fi
 
   build-years:
@@ -40,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        year: ${{ fromJson(needs.setup.outputs.years) }}
+        year: ${{ fromJson(needs.setup.outputs.years || '[]') }}
 
     steps:
       - name: Checkout TIL repo
@@ -57,19 +55,25 @@ jobs:
 
       - name: Sync and convert ${{ matrix.year }}
         run: |
+          set -e
           YEAR=${{ matrix.year }}
+
+          echo "📁 Scanning til-repo/$YEAR"
           for MONTH in $(find "til-repo/$YEAR" -mindepth 1 -maxdepth 1 -type d -regex "til-repo/$YEAR/[0-9]{2}" -exec basename {} \;); do
+            echo "📂 Processing $MONTH"
             mkdir -p "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH"
 
             shopt -s nullglob
             for FILE in til-repo/$YEAR/$MONTH/*.md; do
+              echo "📝 Copying $FILE"
               cp "$FILE" "portfolio-repo/src/pages/til/til-$YEAR/til-$MONTH/"
             done
             shopt -u nullglob
           done
 
-          # 안정적인 .md → .mdx 변환
-          find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" | while read FILE; do
+          echo "🔄 Converting .md to .mdx"
+          find portfolio-repo/src/pages/til/til-$YEAR -type f -name "*.md" | while IFS= read -r FILE; do
+            echo "🔧 Renaming $FILE → ${FILE%.md}.mdx"
             mv "$FILE" "${FILE%.md}.mdx"
           done
 
