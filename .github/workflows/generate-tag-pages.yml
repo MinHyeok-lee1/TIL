@@ -52,7 +52,8 @@ jobs:
           os.makedirs("tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
-              entries.sort(key=lambda x: x[1], reverse=True)
+              # Fix: always compare dates as str!
+              entries.sort(key=lambda x: str(x[1]), reverse=True)
               content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
               for title, date, summary, link in entries:
                   content += f"| [{title}]({link}) | {date} | {summary} |\n"
