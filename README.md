@@ -2,10 +2,10 @@
 
 ## 🔧 GitHub Actions Status
 
-| Workflow Name                  | Status                                                                                                           |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| 🏷️ Generate Tag Pages from TIL | ![Generate Tag Pages](https://github.com/MinHyeok-lee1/TIL/actions/workflows/generate-tag-pages.yml/badge.svg)   |
-| 🔄 Sync TIL to Portfolio       | ![Sync TIL to Portfolio](https://github.com/MinHyeok-lee1/TIL/actions/workflows/sync-to-portfolio.yml/badge.svg) |
+| Workflow Name                  | Status                                                                                                               |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 🏷️ Generate Tag Pages from TIL | ![Generate Tag Pages](https://github.com/MinHyeok-lee1/TIL/actions/workflows/generate-tag-pages.yml/badge.svg)       |
+| 🔄 Sync TIL to Portfolio       | ![Sync TIL to Portfolio](https://github.com/MinHyeok-lee1/TIL/actions/workflows/sync-til-to-portfolio.yml/badge.svg) |
 
 ## 📌 Workflows
 
