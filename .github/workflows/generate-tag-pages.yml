@@ -34,7 +34,7 @@ jobs:
                   content = path.read_text(encoding="utf-8")
                   parts = content.split("---")
                   if len(parts) >= 3:
-                      meta = yaml.safe_load(parts[1])
+                      meta = yaml.safe_load(parts[1]) or {}
                       title = meta.get("title", path.name)
                       date = meta.get("date", "")
                       summary = meta.get("summary", "")
@@ -49,15 +49,17 @@ jobs:
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
+          # ✅ tags 디렉토리 없으면 생성
           os.makedirs("tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
-              # Fix: always compare dates as str!
+              # ✅ 슬래시 포함된 태그 방어 처리
+              safe_tag = tag.replace("/", "-")
               entries.sort(key=lambda x: str(x[1]), reverse=True)
               content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
               for title, date, summary, link in entries:
                   content += f"| [{title}]({link}) | {date} | {summary} |\n"
-              with open(f"tags/{tag}.md", "w", encoding="utf-8") as f:
+              with open(f"tags/{safe_tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
           EOF
 
