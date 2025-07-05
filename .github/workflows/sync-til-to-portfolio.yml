@@ -24,13 +24,13 @@ jobs:
 
       - name: Cleanup old TIL pages
         run: |
-          rm -rf portfolio-repo/src/pages/til
+          rm -rf portfolio-repo/pages/til
 
       - name: Sync and convert TIL files
         run: |
           set -e
           SRC_BASE="til-repo"
-          DEST_BASE="portfolio-repo/src/pages/til"
+          DEST_BASE="portfolio-repo/pages/til"
 
           mkdir -p "$DEST_BASE"
 
@@ -62,7 +62,7 @@ jobs:
 
       - name: Create tags/_meta.json and index.mdx
         run: |
-          TAGS_DIR="portfolio-repo/src/pages/til/tags"
+          TAGS_DIR="portfolio-repo/pages/til/tags"
           mkdir -p "$TAGS_DIR"
 
           # tags/_meta.json
@@ -93,7 +93,7 @@ jobs:
 
       - name: Create all _meta.json and index.mdx files
         run: |
-          BASE="portfolio-repo/src/pages/til"
+          BASE="portfolio-repo/pages/til"
           YEARS=()
           for YEAR_DIR in "$BASE"/til-*; do
             [ -d "$YEAR_DIR" ] || continue
