@@ -183,7 +183,7 @@ jobs:
             done
           done
 
-            - name: Create tag tables (Nextra/GitHub/Summary)
+      - name: Create tag tables (Nextra/GitHub/Summary)
         run: |
           set -e
           BASE="portfolio-repo/pages/til"
