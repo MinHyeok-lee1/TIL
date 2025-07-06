@@ -225,7 +225,7 @@ jobs:
 
           # 실제 태그별 mdx 생성 (중복 제거, 테이블 형식)
           for LIST in "$TAGS_DIR"/*.list; do
-            tag=$(basename "$LIST" .list)
+            safe_tag=$(basename "$LIST" .list)
             mdx="$TAGS_DIR/$safe_tag.mdx"
             echo "# 🏷️ $tag TIL 모음" > "$mdx"
             echo "" >> "$mdx"
