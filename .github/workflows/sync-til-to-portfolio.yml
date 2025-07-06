@@ -183,7 +183,7 @@ jobs:
             done
           done
 
-      - name: Create tag tables (Nextra/GitHub/Summary)
+            - name: Create tag tables (Nextra/GitHub/Summary)
         run: |
           set -e
           BASE="portfolio-repo/pages/til"
@@ -192,46 +192,37 @@ jobs:
 
           # 모든 TIL mdx 경로 수집 (연도, 월 폴더 아래)
           find "$BASE"/til-*/*/*.mdx -type f | while read FILE; do
-            # YAML front matter 추출
             yaml=$(awk '/^---/ {i++} i==1; i==2 {exit}' "$FILE" | sed '1d;$d')
-            # tags: [...] 추출 (쉼표/줄바꿈/공백 케이스 모두 허용)
             tag_line=$(echo "$yaml" | grep "^tags:")
-            # tags가 없으면 스킵
             [ -z "$tag_line" ] && continue
             tags=$(echo "$tag_line" | sed 's/tags:[ ]*\[\(.*\)\]/\1/' | tr -d '"'\'' ')
-            # 배열 형태로 변환
             IFS=',' read -ra tagarr <<< "$tags"
 
-            # summary 추출 (없으면 빈 칸)
             summary=$(echo "$yaml" | grep "^summary:" | sed 's/summary:[ ]*//')
             [ -z "$summary" ] && summary=""
 
-            # 파일 메타
-            REL_PATH="${FILE#$BASE/}" # til-2025/til-07/05-git-test.mdx
+            REL_PATH="${FILE#$BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1 | cut -d'-' -f2)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2 | cut -d'-' -f2)
             FNAME=$(basename "$REL_PATH" .mdx)
-
-            # 링크
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
 
             for tag in "${tagarr[@]}"; do
-              # 태그명 안전하게: 슬래시 등 파일명 불가문자 치환
-              safe_tag=$(echo "$tag" | tr '/ ' '__')
+              # 모든 특수문자를 언더스코어로!
+              safe_tag=$(echo "$tag" | tr -c '[:alnum:]_' '_')
               echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
 
-          # 실제 태그별 mdx 생성 (중복 제거, 테이블 형식)
+          # 태그별 mdx 파일 생성
           for LIST in "$TAGS_DIR"/*.list; do
             safe_tag=$(basename "$LIST" .list)
             mdx="$TAGS_DIR/$safe_tag.mdx"
-            echo "# 🏷️ $tag TIL 모음" > "$mdx"
+            echo "# 🏷️ $safe_tag TIL 모음" > "$mdx"
             echo "" >> "$mdx"
             echo "| Nextra 바로가기 | GitHub 바로가기 | 요약 |" >> "$mdx"
             echo "|------------------|------------------|------|" >> "$mdx"
-            # 중복 제거 및 정렬
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
               echo "| [Nextra 바로가기]($NEXTRA_LINK) | [GitHub 바로가기]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
             done
