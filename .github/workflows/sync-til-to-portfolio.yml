@@ -188,6 +188,7 @@ jobs:
           set -e
           BASE="portfolio-repo/pages/til"
           TAGS_DIR="$BASE/tags"
+          mkdir -p "$TAGS_DIR"
 
           # 모든 TIL mdx 경로 수집 (연도, 월 폴더 아래)
           find "$BASE"/til-*/*/*.mdx -type f | while read FILE; do
@@ -216,15 +217,16 @@ jobs:
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
 
             for tag in "${tagarr[@]}"; do
-              # 태그별 파일 목록 temp에 저장 (중복 방지)
-              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$tag.list"
+              # 태그명 안전하게: 슬래시 등 파일명 불가문자 치환
+              safe_tag=$(echo "$tag" | tr '/ ' '__')
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
 
           # 실제 태그별 mdx 생성 (중복 제거, 테이블 형식)
           for LIST in "$TAGS_DIR"/*.list; do
             tag=$(basename "$LIST" .list)
-            mdx="$TAGS_DIR/$tag.mdx"
+            mdx="$TAGS_DIR/$safe_tag.mdx"
             echo "# 🏷️ $tag TIL 모음" > "$mdx"
             echo "" >> "$mdx"
             echo "| Nextra 바로가기 | GitHub 바로가기 | 요약 |" >> "$mdx"
