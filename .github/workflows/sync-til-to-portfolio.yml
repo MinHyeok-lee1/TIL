@@ -89,8 +89,9 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # 요약 값 처리: 불필요한 공백 및 잘못된 값 제거
-              SUMMARY=$(echo "$SUMMARY" | xargs)  # 공백 제거
+              # 요약 값을 YAML front matter에서 추출
+              SUMMARY=$(awk '/^summary:/ {print substr($0, index($0,$2))}' "$FILE")
+              SUMMARY=$(echo "$SUMMARY" | sed 's/^ *//;s/ *$//')  # 공백 제거
 
               # 요약이 비정상적인 값일 경우 'No summary available'로 대체
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
