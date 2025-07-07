@@ -80,20 +80,19 @@ jobs:
               # 링크 파싱: Title에서 링크 텍스트와 GitHub 링크 추출
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-              
+
               # 날짜 포맷: YYYY-MM-DD에서 Y와 M을 추출
               SLUG=$(basename "$GITHUB_LINK" .md)
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
-              
+
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # 요약 값을 YAML front matter에서 추출
-              SUMMARY=$(awk '/^summary:/ {print substr($0, index($0,$2))}' "$FILE")
-              SUMMARY=$(echo "$SUMMARY" | sed 's/^ *//;s/ *$//')  # 공백 제거
+              # 이제 제대로 된 SUMMARY 값을 추출하도록
+              SUMMARY=$(grep -oP 'summary: "(.*)"' "$FILE" | sed 's/summary: "//;s/"//g')
 
-              # 요약이 비정상적인 값일 경우 'No summary available'로 대체
+              # 만약 SUMMARY가 없다면 No summary available로 설정
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
               fi
