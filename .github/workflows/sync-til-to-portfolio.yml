@@ -237,7 +237,12 @@ jobs:
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
 
-          files=$(find "$BASE"/til-*/*/*.mdx -type f)
+          if [ ! -d "$BASE" ]; then
+            echo "$BASE 디렉토리 없음. tag table generation 스킵."
+            exit 0
+          fi
+          files=$(find "$BASE"/til-*/*/*.mdx -type f 2>/dev/null || true)
+
           if [ -z "$files" ]; then
             echo "No mdx files found for tags. Skipping tag table generation."
             exit 0
