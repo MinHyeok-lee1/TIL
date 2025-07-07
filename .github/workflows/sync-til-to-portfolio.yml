@@ -58,14 +58,14 @@ jobs:
 
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
-          mkdir -p "$TAGS_DEST"
+          mkdir -p "$TAGS_DIR"
 
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             ORG_TAG_NAME=$(basename "$FILE" .md)
             # safe_tag로만 파일 만듦 (소문자 + _)
             SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
-            MDX_FILE="$TAGS_DEST/$SAFE_TAG.mdx"
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"
 
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
@@ -91,7 +91,7 @@ jobs:
           shopt -u nullglob
 
           # 기존에 잘못 생긴 태그 파일(.mdx) 중에서 safe_tag 아닌 이름은 모두 삭제
-          find "$TAGS_DEST" -type f ! -name "_meta.json" ! -name "index.mdx" ! -regex '.*/[a-z0-9_]\+\.mdx' -delete
+          find "$TAGS_DIR" -type f ! -name "_meta.json" ! -name "index.mdx" ! -regex '.*/[a-z0-9_]\+\.mdx' -delete
 
       - name: Create tags/_meta.json and index.mdx
         run: |
@@ -100,7 +100,7 @@ jobs:
 
           # tags/_meta.json
           TAG_META_ITEMS=()
-          for FILE in "$TAGS_DEST"/*.mdx; do
+          for FILE in "$TAGS_DIR"/*.mdx; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
@@ -113,7 +113,7 @@ jobs:
               echo "  ,$ITEM"
             done
             echo "}"
-          } > "$TAGS_DEST/_meta.json"
+          } > "$TAGS_DIR/_meta.json"
 
           echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
