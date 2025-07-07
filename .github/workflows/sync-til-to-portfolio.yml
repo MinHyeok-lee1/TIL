@@ -69,8 +69,15 @@ jobs:
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
-            echo "|------|------|----------|" >> "$MDX_FILE"
+            
+            # index.mdx 파일의 경우 요약을 제외하고 생성
+            if [[ "$SAFE_TAG" == "index" ]]; then
+              echo "| 태그 | 바로가기 |" >> "$MDX_FILE"
+              echo "|------|----------|" >> "$MDX_FILE"
+            else
+              echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+              echo "|------|------|----------|" >> "$MDX_FILE"
+            fi
 
             # 본문 처리
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
@@ -89,28 +96,17 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # YAML front matter에서 summary 값 추출
-              echo "File: $FILE"
-
-
-              # 각 파일에서 Title, Date, Summary 추출
-              SUMMARY=$(awk -F'|' 'NR > 2 {gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}' "$FILE")
-
-              # 요약이 비정상적인 값일 경우 'No summary available'로 대체
+              # 요약이 비어 있거나 잘못된 값이면 "No summary available"로 처리
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
               fi
 
-              # 디버깅: SUMMARY 값 확인
-              echo "SUMMARY: $SUMMARY"
-
-
-              echo "Extracted Summary from $FILE: $SUMMARY"
-
-
-
-              # 테이블에 내용 추가
-              echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+              # index.mdx 파일은 요약을 제외하고 출력
+              if [[ "$SAFE_TAG" == "index" ]]; then
+                echo "| $LINK_TEXT | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+              else
+                echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+              fi
             done
           done
           shopt -u nullglob
@@ -143,22 +139,12 @@ jobs:
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "# 🏷️ 태그 모음" >> "$TAGS_DIR/index.mdx"
           echo "<LabelIcons />" >> "$TAGS_DIR/index.mdx"
-          echo "| 태그 | 요약 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|------|----------|" >> "$TAGS_DIR/index.mdx"
+          echo "| 태그  | 바로가기 |" >> "$TAGS_DIR/index.mdx"
+          echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
-            FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
-            SUMMARY=""
-            if [[ ! -z "$FIRST_ROW" ]]; then
-              SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
-            fi
-
-            # Ensure we always provide a valid summary
-            if [[ -z "$SUMMARY" ]]; then
-              SUMMARY="No summary available"
-            fi
-            echo "| $NAME | $SUMMARY | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
+            echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Create all _meta.json and index.mdx files
