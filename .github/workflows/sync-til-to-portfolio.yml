@@ -82,11 +82,12 @@ jobs:
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+              
               SUMMARY=$(echo "$SUMMARY" | xargs) # Clean up spaces from summary
 
               # Ensure summary is correctly handled
-              if [[ -z "$SUMMARY" ]]; then
-                SUMMARY="No summary available" # Default text if the summary is empty
+              if [[ -z "$SUMMARY" || "$SUMMARY" == "No summary available" ]]; then
+                SUMMARY="No summary available" # Default text if the summary is empty or the same placeholder
               fi
 
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
