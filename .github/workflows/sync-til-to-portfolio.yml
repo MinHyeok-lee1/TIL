@@ -57,16 +57,18 @@ jobs:
 
           # 기존 mdx 태그파일 전체 삭제 (중복 방지)
           rm -f "$TAGS_DEST"/*.mdx
-
           shopt -s nullglob
 
-          # 생성된 태그 파일명 캐싱 (중복방지용)
+          # Bash 4+ associative array (딕셔너리)
           declare -A CREATED_TAGS
 
           for FILE in "$TAGS_SRC"/*.md; do
             [ -f "$FILE" ] || continue
 
-            # 파일 내용 한 줄씩 처리
+            # md파일의 tag이름 추출(쉼표로 분리)
+            TAGS_RAW=$(basename "$FILE" .md)
+            IFS=',' read -ra TAGS <<< "$TAGS_RAW"
+
             grep '^|' "$FILE" | tail -n +3 | while read -r LINE; do
               COL_COUNT=$(echo "$LINE" | awk -F'|' '{print NF}')
               [ "$COL_COUNT" -lt 5 ] && continue
@@ -76,13 +78,6 @@ jobs:
               SUMMARY=$(echo "$LINE" | awk -F'|' '{print $4}' | xargs)
               [[ -z "$TITLE" || "$TITLE" == "Title" || "$TITLE" == "------" ]] && continue
 
-              # tag 필드 위치가 없으면 파일명에서 유추(옵션)
-              # 하지만 태그명은 md파일 이름에서 split 또는 yaml에서 추출 권장
-
-              # md파일의 tag이름 추출(쉼표로 분리)
-              TAGS_RAW=$(basename "$FILE" .md)
-              IFS=',' read -ra TAGS <<< "$TAGS_RAW"
-
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
               SLUG=$(basename "$GITHUB_LINK" .md)
@@ -91,18 +86,19 @@ jobs:
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
               for TAG in "${TAGS[@]}"; do
-                # clean tag name (공백/쉼표/하이픈 → 언더스코어)
+                # clean tag name (알파벳, 숫자만, 언더스코어 여러개 정리, 양끝 제거)
                 safe_tag=$(echo "$TAG" | tr -c '[:alnum:]' '_' | tr -s '_' | sed 's/^_//;s/_$//')
-                # 이미 만든 파일이 아니면 헤더 추가
+                MDX_PATH="$TAGS_DEST/$safe_tag.mdx"
+                # 헤더가 없으면 생성
                 if [ -z "${CREATED_TAGS[$safe_tag]}" ]; then
-                  echo "# 🏷️ $safe_tag TIL 모음" > "$TAGS_DEST/$safe_tag.mdx"
-                  echo "" >> "$TAGS_DEST/$safe_tag.mdx"
-                  echo "| 제목 | 요약 | 바로가기 |" >> "$TAGS_DEST/$safe_tag.mdx"
-                  echo "|------|------|----------|" >> "$TAGS_DEST/$safe_tag.mdx"
+                  echo "# 🏷️ $safe_tag TIL 모음" > "$MDX_PATH"
+                  echo "" >> "$MDX_PATH"
+                  echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_PATH"
+                  echo "|------|------|----------|" >> "$MDX_PATH"
                   CREATED_TAGS[$safe_tag]=1
                 fi
-                # 파일에 한 줄 추가
-                echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$TAGS_DEST/$safe_tag.mdx"
+                # 중복 방지: 같은 내용 여러번 안 들어가게 체크 가능 (여기서는 불필요하면 생략)
+                echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_PATH"
               done
             done
           done
