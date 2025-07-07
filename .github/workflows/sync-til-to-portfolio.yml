@@ -33,88 +33,69 @@ jobs:
           set -e
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til"
-          TAGS_DIR="$DEST_BASE/tags"
-          mkdir -p "$DEST_BASE"
-          mkdir -p "$TAGS_DIR"
 
-          # TIL 본문 md → mdx 변환/복사
+          mkdir -p "$DEST_BASE"
+
+          # TIL 본문 md → mdx로 변환/복사
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
+
             [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
             [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
+
             mkdir -p "$DEST_BASE/til-$YEAR"
             DEST_DIR="$DEST_BASE/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
-          # safe_tag 변환 함수
-          to_safe_tag() {
-            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
-          }
-
-          # 에러 발생 안하게, 패턴 없는 경우도 통과
-          files=$(find "$BASE"/til-*/*/*.mdx -type f 2>/dev/null || true)
-          files="${files:-}"
-          if [ -z "$files" ]; then
-            echo "No mdx files found for tags. Skipping tag table generation."
-            exit 0
-          fi
-
-          # 태그별 .list 파일 생성 (중간 산출)
-          echo "$files" | while read FILE; do
-            yaml=$(awk '/^---/ {i++} i==1; i==2 {exit}' "$FILE" | sed '1d;$d')
-            tag_line=$(echo "$yaml" | grep "^tags:") || true
-            [ -z "$tag_line" ] && continue
-            tags=$(echo "$tag_line" | sed 's/tags:[ ]*\[\(.*\)\]/\1/' | tr -d '"'\'' ')
-            IFS=',' read -ra tagarr <<< "$tags"
-
-            summary=$(echo "$yaml" | grep "^summary:" | sed 's/summary:[ ]*//') || true
-            [ -z "$summary" ] && summary=""
-
-            REL_PATH="${FILE#$BASE/}"
-            YEAR=$(echo "$REL_PATH" | cut -d'/' -f1 | cut -d'-' -f2)
-            MONTH=$(echo "$REL_PATH" | cut -d'/' -f2 | cut -d'-' -f2)
-            FNAME=$(basename "$REL_PATH" .mdx)
-            NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
-            GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
-
-            for tag in "${tagarr[@]}"; do
-              safe_tag=$(to_safe_tag "$tag")
-              [ -z "$safe_tag" ] && continue
-              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
-            done
-          done
-
-          # .list → .mdx로 변환 (중복 없이, 동일한 safe_tag 규칙 사용)
+          TAGS_SRC="$SRC_BASE/tags"
+          TAGS_DEST="$DEST_BASE/tags"
+          mkdir -p "$TAGS_DEST"
           shopt -s nullglob
-          for LIST in "$TAGS_DIR"/*.list; do
-            safe_tag=$(basename "$LIST" .list)
-            [ -z "$safe_tag" ] && continue
-            mdx="$TAGS_DIR/$safe_tag.mdx"
-            safe_tag_path="../../../src/components/LabelIcons"
-            echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
-            echo "" >> "$mdx"
-            echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
-            echo "" >> "$mdx"
-            echo "<LabelIcons />" >> "$mdx"
-            echo "" >> "$mdx"
-            echo "| 제목 | 바로가기 | 요약 |" >> "$mdx"
-            echo "|------|----------|------|" >> "$mdx"
-            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
-              TITLE="${FNAME//-/ }"
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
-            done
-            rm "$LIST"
+          for FILE in "$TAGS_SRC"/*.md; do
+            TAG_NAME=$(basename "$FILE" .md)
+            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
+
+            # 헤더 생성
+            echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+            echo "|------|------|----------|" >> "$MDX_FILE"
+
+            awk '
+              BEGIN {skip=0}
+              /^ *\|/ {              # 테이블 행만 처리
+                if (skip++ < 2) next # 헤더, 구분선 2줄은 스킵
+                n=split($0,arr,"|")
+                if(n<5) next         # 열 개수 부족 시 패스
+                gsub(/^[ \t]+|[ \t]+$/, "", arr[2]) # TITLE 양끝 공백 제거
+                gsub(/^[ \t]+|[ \t]+$/, "", arr[3]) # DATE
+                gsub(/^[ \t]+|[ \t]+$/, "", arr[4]) # SUMMARY
+
+                # TITLE에서 링크 추출
+                match(arr[2], /\[([^\]]+)\]\(([^\)]+)\)/, m)
+                linktext=(length(m[1]) ? m[1] : arr[2])
+                glink=(length(m[2]) ? m[2] : "")
+
+                # SLUG, 날짜 처리
+                split(arr[3], datepart, "-")
+                y=(length(datepart[1]) ? datepart[1] : "")
+                m=(length(datepart[2]) ? datepart[2] : "")
+                slug=(glink ~ /\.md$/ ? gensub(/.*\/([^\/]+)\.md$/,"\\1","g",glink) : "")
+
+                nextralink= (y && m && slug) ? ("/til/til-" y "/til-" m "/" slug) : ""
+                summary=arr[4]
+
+                if(linktext && nextralink && glink)
+                  printf("| %s | %s | [Nextra](%s) \\| [GitHub](%s) |\n", linktext, summary, nextralink, glink)
+              }
+            ' "$FILE" >> "$MDX_FILE"
           done
           shopt -u nullglob
-
-          # 혹시 남은 *_ 또는 _.mdx 정리 (진짜 안 생기겠지만 혹시 몰라 추가)
-          find "$TAGS_DIR" -type f -name "*_.mdx" -delete
-          find "$TAGS_DIR" -type f -name "_.mdx" -delete
 
       - name: Create tags/_meta.json and index.mdx
         run: |
@@ -122,17 +103,19 @@ jobs:
           mkdir -p "$TAGS_DIR"
 
           # tags/_meta.json
-          TAG_META_ITEMS=""
+          TAG_META_ITEMS=()
           for FILE in "$TAGS_DIR"/*.mdx; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
-            TAG_META_ITEMS="$TAG_META_ITEMS  ,\"$NAME\": \"$NAME 태그\""
+            TAG_META_ITEMS+=("\"$NAME\": \"$NAME 태그\"")
           done
           {
             echo "{"
             echo '  "index": "문서개요"'
-            echo "$TAG_META_ITEMS"
+            for ITEM in "${TAG_META_ITEMS[@]}"; do
+              echo "  ,$ITEM"
+            done
             echo "}"
           } > "$TAGS_DIR/_meta.json"
 
@@ -254,17 +237,7 @@ jobs:
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
 
-          # safe_tag 변환 함수 선언 (위와 완전히 동일)
-          to_safe_tag() {
-            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
-          }
-
-          if [ ! -d "$BASE" ]; then
-            echo "$BASE 디렉토리 없음. tag table generation 스킵."
-            exit 0
-          fi
-          files=$(find "$BASE"/til-*/*/*.mdx -type f 2>/dev/null || true)
-
+          files=$(find "$BASE"/til-*/*/*.mdx -type f)
           if [ -z "$files" ]; then
             echo "No mdx files found for tags. Skipping tag table generation."
             exit 0
@@ -288,8 +261,7 @@ jobs:
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
 
             for tag in "${tagarr[@]}"; do
-              safe_tag=$(to_safe_tag "$tag")   # << 이 부분이 핵심!
-              [ -z "$safe_tag" ] && continue
+              safe_tag=$(echo "$tag" | tr -c '[:alnum:]_' '_')
               echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
@@ -297,7 +269,6 @@ jobs:
           shopt -s nullglob
           for LIST in "$TAGS_DIR"/*.list; do
             safe_tag=$(basename "$LIST" .list)
-            [ -z "$safe_tag" ] && continue
             mdx="$TAGS_DIR/$safe_tag.mdx"
             safe_tag_path="../../../src/components/LabelIcons"
             echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
@@ -310,7 +281,11 @@ jobs:
             echo "|------|----------|------|" >> "$mdx"
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
               TITLE="${FNAME//-/ }"
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >_)_)
+              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
+            done
+            rm "$LIST"
+          done
+          shopt -u nullglob
 
       - name: Commit and Push
         run: |
