@@ -59,13 +59,16 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
+
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            NAME=$(basename "$FILE" .md)
-            MDX_FILE="$TAGS_DEST/$NAME.mdx"
+            ORG_TAG_NAME=$(basename "$FILE" .md)
+            # safe_tag로만 파일 만듦 (소문자 + _)
+            SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+            MDX_FILE="$TAGS_DEST/$SAFE_TAG.mdx"
 
             # 헤더 생성
-            echo "# 🏷️ $NAME TIL 모음" > "$MDX_FILE"
+            echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
@@ -87,9 +90,8 @@ jobs:
           done
           shopt -u nullglob
 
-          # 혹시 남은 *_ 또는 _.mdx 정리(예방차원)
-          find "$TAGS_DEST" -type f -name "*_.mdx" -delete
-          find "$TAGS_DEST" -type f -name "_.mdx" -delete
+          # 기존에 잘못 생긴 태그 파일(.mdx) 중에서 safe_tag 아닌 이름은 모두 삭제
+          find "$TAGS_DEST" -type f ! -name "_meta.json" ! -name "index.mdx" ! -regex '.*/[a-z0-9_]\+\.mdx' -delete
 
       - name: Create tags/_meta.json and index.mdx
         run: |
