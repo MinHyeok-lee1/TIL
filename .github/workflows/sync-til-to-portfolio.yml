@@ -2,21 +2,19 @@ name: 🔄 Sync TIL to Portfolio
 
 on:
   push:
-    branches: [main] # main 브랜치에 md 파일 푸시 시 동작
-    paths: ["**/*.md"] # .md 파일 변경에만 반응
-  workflow_dispatch: # 수동 실행도 허용
+    branches: [main]
+    paths: ["**/*.md"]
+  workflow_dispatch:
 
 jobs:
   sync-til:
     runs-on: ubuntu-latest
     steps:
-      # 1. TIL repo 클론 (자신의 md 기록이 있는 원본 저장소)
       - name: Checkout TIL repo
         uses: actions/checkout@v3
         with:
           path: til-repo
 
-      # 2. 포트폴리오 repo 클론 (nextra 기반 mdx 파일이 저장될 목적지 저장소)
       - name: Checkout Portfolio repo
         uses: actions/checkout@v3
         with:
@@ -24,13 +22,10 @@ jobs:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           path: portfolio-repo
 
-      # 3. portfolio repo에서 기존 TIL pages 폴더 전체 삭제 (이전 데이터 제거)
       - name: Cleanup old TIL pages
         run: |
           rm -rf portfolio-repo/pages/til
 
-      # 4. md 파일을 mdx로 변환/복사 및 폴더 구조 맞추기
-      #    (ex. til-repo/2025/07/05-git-test.md -> portfolio-repo/pages/til/til-2025/til-07/05-git-test.mdx)
       - name: Sync and convert TIL files
         run: |
           set -e
@@ -39,7 +34,6 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # 년/월별 md 파일을 mdx로 변환해서 목적지로 복사
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
@@ -55,58 +49,23 @@ jobs:
             cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
-          # tags 디렉토리 내 md 파일도 mdx로 변환해서 복사 (태그별 문서용)
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
+
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            TAG_NAME=$(basename "$FILE" .md)
-            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
-
-            echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "| 제목 | 바로가기 | Summary |" >> "$MDX_FILE"
-            echo "|------|----------|---------|" >> "$MDX_FILE"
-
-            # 본문 행 파싱해서 변환
-            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
-              # 헤더/구분선 패스
-              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
-
-              # Title이 [텍스트](링크)면 내부에서 slug 추출
-              # TITLE에서 "](링크)" 전까지 slug 추출
-              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
-              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-
-              # 파일명 slug: 깃허브 링크에서 마지막 segment 추출, .md 떼고 사용
-              SLUG=$(basename "$GITHUB_LINK" .md)
-
-              # 날짜 분해
-              Y=$(echo "$DATE" | cut -d'-' -f1)
-              M=$(echo "$DATE" | cut -d'-' -f2)
-
-              # Nextra 경로 조립
-              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-
-              # Summary 정리 (앞뒤공백 제거)
-              SUMMARY=$(echo "$SUMMARY" | xargs)
-
-              # 행 생성
-              echo "| [Nextra 바로가기]($NEXTRA_LINK) | [GitHub 바로가기]($GITHUB_LINK) | $SUMMARY |" >> "$MDX_FILE"
-            done
+            NAME=$(basename "$FILE" .md)
+            cp "$FILE" "$TAGS_DEST/$NAME.mdx"
           done
           shopt -u nullglob
 
-      # 5. 태그 페이지용 메타파일(_meta.json) 및 index.mdx 생성
       - name: Create tags/_meta.json and index.mdx
         run: |
           TAGS_DIR="portfolio-repo/pages/til/tags"
           mkdir -p "$TAGS_DIR"
 
-          # 태그별 mdx 파일 이름을 모아 태그 네비게이션용 _meta.json 생성
+          # tags/_meta.json
           TAG_META_ITEMS=()
           for FILE in "$TAGS_DIR"/*.mdx; do
             [ -f "$FILE" ] || continue
@@ -123,9 +82,8 @@ jobs:
             echo "}"
           } > "$TAGS_DIR/_meta.json"
 
-          # 태그 모음 index.mdx 생성 (태그별로 nextra/github 링크 표)
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
+          echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
@@ -135,7 +93,6 @@ jobs:
             echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
-      # 6. TIL 연/월별 _meta.json 및 index.mdx 파일 일괄 생성 (네비/목차, nextra, github 링크)
       - name: Create all _meta.json and index.mdx files
         run: |
           BASE="portfolio-repo/pages/til"
@@ -154,7 +111,6 @@ jobs:
             echo "}"
           } > "$BASE/_meta.json"
 
-          # TIL 전체 목차(index.mdx)
           echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "> 꾸준한 기록은 최고의 성장으로 이어진다." >> "$BASE/index.mdx"
@@ -166,7 +122,6 @@ jobs:
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
           done
 
-          # 연도별/월별 _meta.json, index.mdx 생성 (월별, 일별로 자동화)
           for YEAR in "${YEARS[@]}"; do
             YEAR_DIR="$BASE/til-$YEAR"
             MONTHS=()
@@ -184,10 +139,9 @@ jobs:
               echo "}"
             } > "$YEAR_DIR/_meta.json"
 
-            # 연도별 index.mdx (월별 표)
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
-            echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
+            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|----------|" >> "$YEAR_DIR/index.mdx"
@@ -197,7 +151,6 @@ jobs:
               echo "| ${MONTH}월 | [Nextra](/til/til-$YEAR/til-$MONTH) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
             done
 
-            # 월별 index.mdx (일/제목 표) 및 월별 _meta.json
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
               MONTH_META_ITEMS=()
@@ -223,7 +176,7 @@ jobs:
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
+              echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|----------|" >> "$MONTH_DIR/index.mdx"
@@ -235,7 +188,60 @@ jobs:
             done
           done
 
-      # 7. 변경사항 있으면 커밋/푸시 (자동 적용)
+      - name: Create tag tables (Nextra/GitHub/Summary)
+        run: |
+          set -e
+          BASE="portfolio-repo/pages/til"
+          TAGS_DIR="$BASE/tags"
+          mkdir -p "$TAGS_DIR"
+
+          files=$(find "$BASE"/til-*/*/*.mdx -type f)
+          if [ -z "$files" ]; then
+            echo "No mdx files found for tags. Skipping tag table generation."
+            exit 0
+          fi
+
+          echo "$files" | while read FILE; do
+            yaml=$(awk '/^---/ {i++} i==1; i==2 {exit}' "$FILE" | sed '1d;$d')
+            tag_line=$(echo "$yaml" | grep "^tags:") || true
+            [ -z "$tag_line" ] && continue
+            tags=$(echo "$tag_line" | sed 's/tags:[ ]*\[\(.*\)\]/\1/' | tr -d '"'\'' ')
+            IFS=',' read -ra tagarr <<< "$tags"
+
+            summary=$(echo "$yaml" | grep "^summary:" | sed 's/summary:[ ]*//') || true
+            [ -z "$summary" ] && summary=""
+
+            REL_PATH="${FILE#$BASE/}"
+            YEAR=$(echo "$REL_PATH" | cut -d'/' -f1 | cut -d'-' -f2)
+            MONTH=$(echo "$REL_PATH" | cut -d'/' -f2 | cut -d'-' -f2)
+            FNAME=$(basename "$REL_PATH" .mdx)
+            NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
+            GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
+
+            for tag in "${tagarr[@]}"; do
+              safe_tag=$(echo "$tag" | tr -c '[:alnum:]_' '_')
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
+            done
+          done
+
+          shopt -s nullglob
+          for LIST in "$TAGS_DIR"/*.list; do
+            safe_tag=$(basename "$LIST" .list)
+            mdx="$TAGS_DIR/$safe_tag.mdx"
+            echo "# 🏷️ $safe_tag TIL 모음" > "$mdx"
+            echo "" >> "$mdx"
+            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$mdx"
+            echo "" >> "$mdx"
+            echo "| 제목 | 바로가기 | 요약 |" >> "$mdx"
+            echo "|------|----------|------|" >> "$mdx"
+            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
+              TITLE="${FNAME//-/ }"
+              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
+            done
+            rm "$LIST"
+          done
+          shopt -u nullglob
+
       - name: Commit and Push
         run: |
           cd portfolio-repo
