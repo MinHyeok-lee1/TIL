@@ -77,17 +77,16 @@ jobs:
                 gsub(/^[ \t]+|[ \t]+$/, "", arr[3])
                 gsub(/^[ \t]+|[ \t]+$/, "", arr[4])
 
-                # 링크 파싱 ([text](url))
+                # 링크 파싱: []() 없이
                 linktext=title
                 glink=""
-                l=match(title, /\[([^\]]+)\]\(([^\)]+)\)/)
-                if(l) {
-                  linkbody=substr(title, RSTART, RLENGTH)
-                  sub(/^\[/,"",linkbody)
-                  split(linkbody,a,"](")
-                  linktext=a[1]
-                  glink=a[2]
-                  sub(/\)$/,"",glink)
+                bl = index(title, "[")
+                br = index(title, "]")
+                pl = index(title, "(")
+                pr = index(title, ")")
+                if (bl && br && pl && pr && br < pl && pl < pr) {
+                  linktext=substr(title, bl+1, br-bl-1)
+                  glink=substr(title, pl+1, pr-pl-1)
                 }
 
                 split(arr[3], datepart, "-")
@@ -106,6 +105,7 @@ jobs:
                   printf("| %s | %s | [Nextra](%s) \\| [GitHub](%s) |\n", linktext, summary, nextralink, glink)
               }
             ' "$FILE" >> "$MDX_FILE"
+
           done
           shopt -u nullglob
 
