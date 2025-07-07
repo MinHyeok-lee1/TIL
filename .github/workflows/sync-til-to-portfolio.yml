@@ -54,8 +54,6 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
-
-          # 기존 mdx/tag list 파일 싹 삭제
           rm -f "$TAGS_DEST"/*.mdx "$TAGS_DEST"/*.list
 
           shopt -s nullglob
@@ -63,10 +61,7 @@ jobs:
 
           for FILE in "$TAGS_SRC"/*.md; do
             [ -f "$FILE" ] || continue
-
-            # 파일명에서 여러 태그가 콤마로 붙었으면 split
             TAGS_RAW=$(basename "$FILE" .md)
-            # 콤마로 나누고 각각 트림
             IFS=',' read -ra TAGS <<< "$TAGS_RAW"
             for i in "${!TAGS[@]}"; do
               TAGS[$i]=$(echo "${TAGS[$i]}" | xargs)
@@ -89,9 +84,9 @@ jobs:
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
               for TAG in "${TAGS[@]}"; do
-                # clean: 소문자, 숫자, 언더스코어만, 나머진 _로, 중복_정리, 끝_제거
+                # clean: 소문자, 숫자, 언더스코어만, 여러개 -> 1개, 앞뒤 제거
                 safe_tag=$(echo "$TAG" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
-                # 빈 문자열은 건너뜀
+                # 🚨 빈 safe_tag면 절대 파일 안 만듦
                 [ -z "$safe_tag" ] && continue
                 MDX_PATH="$TAGS_DEST/$safe_tag.mdx"
                 if [ -z "${CREATED_TAGS[$safe_tag]}" ]; then
@@ -107,7 +102,7 @@ jobs:
           done
           shopt -u nullglob
 
-          # 마지막에 혹시라도 남은 *_.mdx 삭제
+          # 혹시라도 누락된 파일 있으면 마지막으로 싹 삭제 (완전 방지)
           find "$TAGS_DEST" -type f -name "*_.mdx" -delete
           find "$TAGS_DEST" -type f -name "_.mdx" -delete
 
