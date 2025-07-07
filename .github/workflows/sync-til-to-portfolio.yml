@@ -59,36 +59,51 @@ jobs:
           rm -f "$TAGS_DEST"/*.mdx
 
           shopt -s nullglob
+
+          # 생성된 태그 파일명 캐싱 (중복방지용)
+          declare -A CREATED_TAGS
+
           for FILE in "$TAGS_SRC"/*.md; do
-            [ -f "$FILE" ] || continue  # 실제 파일만
+            [ -f "$FILE" ] || continue
 
-            TAG_NAME=$(basename "$FILE" .md)
-            # 파일명이 비거나 "_"가 나오면 무시 (보통 에러 상황)
-            [[ -z "$TAG_NAME" || "$TAG_NAME" == "_" ]] && continue
-
-            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
-            # 혹시라도 남아있으면 또 삭제
-            [ -f "$MDX_FILE" ] && rm "$MDX_FILE"
-
-            echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
-            echo "|------|------|----------|" >> "$MDX_FILE"
-
+            # 파일 내용 한 줄씩 처리
             grep '^|' "$FILE" | tail -n +3 | while read -r LINE; do
               COL_COUNT=$(echo "$LINE" | awk -F'|' '{print NF}')
-              if [ "$COL_COUNT" -lt 5 ]; then continue; fi
+              [ "$COL_COUNT" -lt 5 ] && continue
+
               TITLE=$(echo "$LINE" | awk -F'|' '{print $2}' | xargs)
               DATE=$(echo "$LINE" | awk -F'|' '{print $3}' | xargs)
               SUMMARY=$(echo "$LINE" | awk -F'|' '{print $4}' | xargs)
               [[ -z "$TITLE" || "$TITLE" == "Title" || "$TITLE" == "------" ]] && continue
+
+              # tag 필드 위치가 없으면 파일명에서 유추(옵션)
+              # 하지만 태그명은 md파일 이름에서 split 또는 yaml에서 추출 권장
+
+              # md파일의 tag이름 추출(쉼표로 분리)
+              TAGS_RAW=$(basename "$FILE" .md)
+              IFS=',' read -ra TAGS <<< "$TAGS_RAW"
+
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
               SLUG=$(basename "$GITHUB_LINK" .md)
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-              echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+
+              for TAG in "${TAGS[@]}"; do
+                # clean tag name (공백/쉼표/하이픈 → 언더스코어)
+                safe_tag=$(echo "$TAG" | tr -c '[:alnum:]' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+                # 이미 만든 파일이 아니면 헤더 추가
+                if [ -z "${CREATED_TAGS[$safe_tag]}" ]; then
+                  echo "# 🏷️ $safe_tag TIL 모음" > "$TAGS_DEST/$safe_tag.mdx"
+                  echo "" >> "$TAGS_DEST/$safe_tag.mdx"
+                  echo "| 제목 | 요약 | 바로가기 |" >> "$TAGS_DEST/$safe_tag.mdx"
+                  echo "|------|------|----------|" >> "$TAGS_DEST/$safe_tag.mdx"
+                  CREATED_TAGS[$safe_tag]=1
+                fi
+                # 파일에 한 줄 추가
+                echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$TAGS_DEST/$safe_tag.mdx"
+              done
             done
           done
           shopt -u nullglob
