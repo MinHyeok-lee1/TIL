@@ -60,9 +60,13 @@ jobs:
 
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            TAG_NAME=$(basename "$FILE" .md)
-            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
+            [ -f "$FILE" ] || continue  # 실제 파일만
 
+            TAG_NAME=$(basename "$FILE" .md)
+            # 파일명이 비거나 "_"가 나오면 무시 (보통 에러 상황)
+            [[ -z "$TAG_NAME" || "$TAG_NAME" == "_" ]] && continue
+
+            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
             # 혹시라도 남아있으면 또 삭제
             [ -f "$MDX_FILE" ] && rm "$MDX_FILE"
 
