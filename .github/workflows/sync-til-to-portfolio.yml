@@ -100,7 +100,7 @@ jobs:
 
           # tags/_meta.json
           TAG_META_ITEMS=()
-          for FILE in "$TAGS_DIR"/*.mdx; do
+          for FILE in "$TAGS_DEST"/*.mdx; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
@@ -113,7 +113,7 @@ jobs:
               echo "  ,$ITEM"
             done
             echo "}"
-          } > "$TAGS_DIR/_meta.json"
+          } > "$TAGS_DEST/_meta.json"
 
           echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
@@ -278,11 +278,11 @@ jobs:
             echo "" >> "$mdx"
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
-            echo "| 제목 | 바로가기 | 요약 |" >> "$mdx"
-            echo "|------|----------|------|" >> "$mdx"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
+            echo "|------|------|----------|" >> "$mdx"
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
               TITLE="${FNAME//-/ }"
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
+              echo "| $TITLE | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
             done
             rm "$LIST"
           done
