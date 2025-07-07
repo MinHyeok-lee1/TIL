@@ -116,8 +116,7 @@ jobs:
             for ITEM in "${TAG_META_ITEMS[@]}"; do
               echo "  ,$ITEM"
             done
-            echo "}"
-          } > "$TAGS_DIR/_meta.json"
+            echo "} > $TAGS_DIR/_meta.json"
 
           echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
