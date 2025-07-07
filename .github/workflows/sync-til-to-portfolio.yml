@@ -57,7 +57,7 @@ jobs:
           done
 
           TAGS_SRC="$SRC_BASE/tags"
-          TAGS_DEST="$DEST_BASE/tags"
+          TAGS_DIR="$DEST_BASE/tags"
           mkdir -p "$TAGS_DIR"
 
           shopt -s nullglob
