@@ -74,7 +74,7 @@ jobs:
 
             # 본문 처리
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
-              # 제목이나 요약이 없으면 건너뛰기
+              # 제목, 날짜, 요약 값이 올바르게 추출되었는지 확인
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
               # 링크 파싱: Title에서 링크 텍스트와 GitHub 링크 추출
