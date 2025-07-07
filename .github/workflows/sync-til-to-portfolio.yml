@@ -68,25 +68,37 @@ jobs:
 
             awk '
               BEGIN {skip=0}
-              /^ *\|/ {              # 테이블 행만 처리
-                if (skip++ < 2) next # 헤더, 구분선 2줄은 스킵
+              /^ *\|/ {
+                if (skip++ < 2) next
                 n=split($0,arr,"|")
-                if(n<5) next         # 열 개수 부족 시 패스
-                gsub(/^[ \t]+|[ \t]+$/, "", arr[2]) # TITLE 양끝 공백 제거
-                gsub(/^[ \t]+|[ \t]+$/, "", arr[3]) # DATE
-                gsub(/^[ \t]+|[ \t]+$/, "", arr[4]) # SUMMARY
+                if(n<5) next
+                title=arr[2]
+                gsub(/^[ \t]+|[ \t]+$/, "", title)
+                gsub(/^[ \t]+|[ \t]+$/, "", arr[3])
+                gsub(/^[ \t]+|[ \t]+$/, "", arr[4])
 
-                # TITLE에서 링크 추출
-                match(arr[2], /\[([^\]]+)\]\(([^\)]+)\)/, m)
-                linktext=(length(m[1]) ? m[1] : arr[2])
-                glink=(length(m[2]) ? m[2] : "")
+                # 링크 파싱 ([text](url))
+                linktext=title
+                glink=""
+                l=match(title, /\[([^\]]+)\]\(([^\)]+)\)/)
+                if(l) {
+                  linkbody=substr(title, RSTART, RLENGTH)
+                  sub(/^\[/,"",linkbody)
+                  split(linkbody,a,"](")
+                  linktext=a[1]
+                  glink=a[2]
+                  sub(/\)$/,"",glink)
+                }
 
-                # SLUG, 날짜 처리
                 split(arr[3], datepart, "-")
                 y=(length(datepart[1]) ? datepart[1] : "")
                 m=(length(datepart[2]) ? datepart[2] : "")
-                slug=(glink ~ /\.md$/ ? gensub(/.*\/([^\/]+)\.md$/,"\\1","g",glink) : "")
-
+                slug=""
+                if(glink ~ /\.md$/) {
+                  n=split(glink,pp,"/")
+                  slug=pp[n]
+                  sub(/\.md$/,"",slug)
+                }
                 nextralink= (y && m && slug) ? ("/til/til-" y "/til-" m "/" slug) : ""
                 summary=arr[4]
 
