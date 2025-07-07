@@ -83,7 +83,7 @@ jobs:
           } > "$TAGS_DIR/_meta.json"
 
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo '> <img src="/vercel.svg" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.svg" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
+          echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
@@ -141,7 +141,7 @@ jobs:
 
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
-            echo '> <img src="/vercel.svg" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.svg" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
+            echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$YEAR_DIR/index.mdx"
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|----------|" >> "$YEAR_DIR/index.mdx"
@@ -176,7 +176,7 @@ jobs:
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo '> <img src="/vercel.svg" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.svg" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
+              echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|----------|" >> "$MONTH_DIR/index.mdx"
@@ -230,7 +230,7 @@ jobs:
             mdx="$TAGS_DIR/$safe_tag.mdx"
             echo "# 🏷️ $safe_tag TIL 모음" > "$mdx"
             echo "" >> "$mdx"
-            echo '> <img src="/vercel.svg" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.svg" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$mdx"
+            echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$mdx"
             echo "" >> "$mdx"
             echo "| 제목 | 바로가기 | 요약 |" >> "$mdx"
             echo "|------|----------|------|" >> "$mdx"
