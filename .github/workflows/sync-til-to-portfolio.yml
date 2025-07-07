@@ -54,10 +54,17 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
+
+          # 기존 mdx 태그파일 전체 삭제 (중복 방지)
+          rm -f "$TAGS_DEST"/*.mdx
+
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             TAG_NAME=$(basename "$FILE" .md)
             MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
+
+            # 혹시라도 남아있으면 또 삭제
+            [ -f "$MDX_FILE" ] && rm "$MDX_FILE"
 
             echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
@@ -65,25 +72,18 @@ jobs:
             echo "|------|------|----------|" >> "$MDX_FILE"
 
             grep '^|' "$FILE" | tail -n +3 | while read -r LINE; do
-              # 필드 4개 이상만 처리
               COL_COUNT=$(echo "$LINE" | awk -F'|' '{print NF}')
-              if [ "$COL_COUNT" -lt 5 ]; then
-                continue
-              fi
+              if [ "$COL_COUNT" -lt 5 ]; then continue; fi
               TITLE=$(echo "$LINE" | awk -F'|' '{print $2}' | xargs)
               DATE=$(echo "$LINE" | awk -F'|' '{print $3}' | xargs)
               SUMMARY=$(echo "$LINE" | awk -F'|' '{print $4}' | xargs)
-
-              # 비어있거나 헤더/구분선은 무시
               [[ -z "$TITLE" || "$TITLE" == "Title" || "$TITLE" == "------" ]] && continue
-
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
               SLUG=$(basename "$GITHUB_LINK" .md)
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
             done
           done
