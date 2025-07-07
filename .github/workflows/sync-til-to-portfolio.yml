@@ -83,14 +83,12 @@ jobs:
           } > "$TAGS_DIR/_meta.json"
 
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$TAGS_DIR/index.mdx"
-          echo "" >> "$TAGS_DIR/index.mdx"
-          echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
-          for FILE in "$TAGS_DIR"/*.mdx; do
-            NAME=$(basename "$FILE" .mdx)
-            [ "$NAME" = "index" ] && continue
-            echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
+          echo '<span style={{ display: \"inline-flex\", alignItems: \"center\" }}>' \
+              '<img src=\"/vercel.svg\" width=\"18\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />' \
+              'Nextra(포트폴리오)' \
+              '<span style={{ margin: \"0 8px\" }}>|</span>' \
+              '<img src=\"/github.svg\" width=\"22\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />' \
+              'GitHub(원본)</span>' >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Create all _meta.json and index.mdx files
@@ -141,14 +139,12 @@ jobs:
 
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
-            echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$YEAR_DIR/index.mdx"
-            echo "" >> "$YEAR_DIR/index.mdx"
-            echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
-            echo "|----|----------|" >> "$YEAR_DIR/index.mdx"
-            for MONTH_DIR in "$YEAR_DIR"/til-*; do
-              [ -d "$MONTH_DIR" ] || continue
-              MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
-              echo "| ${MONTH}월 | [Nextra](/til/til-$YEAR/til-$MONTH) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
+            echo "<span style={{ display: \"inline-flex\", alignItems: \"center\" }}>" \
+                "<img src=\"/vercel.svg\" width=\"18\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+                "Nextra(포트폴리오)" \
+                "<span style={{ margin: \"0 8px\" }}>|</span>" \
+                "<img src=\"/github.svg\" width=\"22\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+                "GitHub(원본)</span>" >> "$YEAR_DIR/index.mdx"
             done
 
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
@@ -176,8 +172,12 @@ jobs:
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$MONTH_DIR/index.mdx"
-              echo "" >> "$MONTH_DIR/index.mdx"
+              echo "<span style={{ display: \"inline-flex\", alignItems: \"center\" }}>" \
+              "<img src=\"/vercel.svg\" width=\"18\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+              "Nextra(포트폴리오)" \
+              "<span style={{ margin: \"0 8px\" }}>|</span>" \
+              "<img src=\"/github.svg\" width=\"22\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+              "GitHub(원본)</span>" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|----------|" >> "$MONTH_DIR/index.mdx"
               for FNAME in "${FILES[@]}"; do
@@ -230,8 +230,12 @@ jobs:
             mdx="$TAGS_DIR/$safe_tag.mdx"
             echo "# 🏷️ $safe_tag TIL 모음" > "$mdx"
             echo "" >> "$mdx"
-            echo '<span><img src="/vercel.svg" width="18" style={{ verticalAlign: "middle" }} /> : Nextra(포트폴리오)&nbsp;&nbsp;<img src="/github.svg" width="18" style={{ verticalAlign: "middle" }} /> : GitHub(원본)</span>' >> "$mdx"
-            echo "" >> "$mdx"
+            echo "<span style={{ display: \"inline-flex\", alignItems: \"center\" }}>" \
+            "<img src=\"/vercel.svg\" width=\"18\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+            "Nextra(포트폴리오)" \
+            "<span style={{ margin: \"0 8px\" }}>|</span>" \
+            "<img src=\"/github.svg\" width=\"22\" style={{ marginTop: \"22px\", marginRight: \"4px\" }} />" \
+            "GitHub(원본)</span>" >> "$mdx"
             echo "| 제목 | 바로가기 | 요약 |" >> "$mdx"
             echo "|------|----------|------|" >> "$mdx"
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
