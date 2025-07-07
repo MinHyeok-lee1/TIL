@@ -256,7 +256,8 @@ jobs:
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
 
             for tag in "${tagarr[@]}"; do
-              safe_tag=$(echo "$tag" | tr -c '[:alnum:]_' '_')
+              safe_tag=$(to_safe_tag "$tag")
+              [ -z "$safe_tag" ] && continue
               echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
