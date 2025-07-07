@@ -287,17 +287,21 @@ jobs:
             safe_tag=$(basename "$LIST" .list)
             mdx="$TAGS_DIR/$safe_tag.mdx"
             safe_tag_path="../../../src/components/LabelIcons"
+            
             echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
             echo "" >> "$mdx"
             echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
             echo "" >> "$mdx"
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
-            echo "|------|------|----------|" >> "$mdx"
-            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
+            
+            # 요약을 제외하고 '제목'과 '바로가기'만 출력
+            echo "| 제목 | 바로가기 |" >> "$mdx"
+            echo "|------|----------|" >> "$mdx"
+            
+            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
               TITLE="${FNAME//-/ }"
-              echo "| $TITLE | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
+              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
             done
             rm "$LIST"
           done
