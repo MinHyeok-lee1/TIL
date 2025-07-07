@@ -90,7 +90,7 @@ jobs:
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
               # YAML front matter에서 summary 값 추출
-              SUMMARY=$(grep -oP '^summary:\s+"\K(.*)(?=")' "$FILE")
+              SUMMARY=$(grep '^summary:' "$FILE" | sed 's/summary: "//;s/"//')
               
               # 요약이 비정상적인 값일 경우 'No summary available'로 대체
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
