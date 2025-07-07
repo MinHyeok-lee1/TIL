@@ -94,9 +94,6 @@ jobs:
           done
           shopt -u nullglob
 
-          # Delete invalid tag files (safe_tag name only)
-          find "$TAGS_DIR" -type f ! -name "_meta.json" ! -name "index.mdx" ! -regex '.*/[a-z0-9_]\+\.mdx' -delete
-
       - name: Create tags/_meta.json and index.mdx
         run: |
           TAGS_DIR="portfolio-repo/pages/til/tags"
