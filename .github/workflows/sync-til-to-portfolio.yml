@@ -74,6 +74,7 @@ jobs:
 
             # 본문 처리
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
+              # TITLE과 SUMMARY 부분에서 이상한 값이 나오지 않도록
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
               # 링크 파싱
@@ -84,11 +85,11 @@ jobs:
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # 요약 값 정리
-              SUMMARY=$(echo "$SUMMARY" | xargs) # Clean up spaces from summary
+              # 요약 값 처리: pipe 구분자가 있는지 확인하고 적절히 추출
+              SUMMARY=$(echo "$SUMMARY" | xargs) # 공백 제거
 
-              # 요약이 비어 있으면 기본 값 대신 "No summary available"로 설정
-              if [[ -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
+              # 요약이 이상한 값일 경우 'No summary available'로 대체
+              if [[ "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
               fi
 
