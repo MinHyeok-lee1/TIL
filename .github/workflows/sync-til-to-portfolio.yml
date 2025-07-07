@@ -72,6 +72,7 @@ jobs:
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
 
+            # 본문 처리
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
@@ -82,7 +83,7 @@ jobs:
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-              
+
               SUMMARY=$(echo "$SUMMARY" | xargs) # Clean up spaces from summary
 
               # Ensure summary is correctly handled
@@ -90,6 +91,10 @@ jobs:
                 SUMMARY="No summary available" # Default text if the summary is empty or the same placeholder
               fi
 
+              # 로그를 출력하여 SUMMARY 값 확인
+              echo "SUMMARY: $SUMMARY"
+
+              # 테이블에 내용 추가
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
             done
           done
