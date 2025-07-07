@@ -177,8 +177,6 @@ jobs:
               } > "$MONTH_DIR/_meta.json"
 
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
-              echo "# 문서개요" > "$MONTH_DIR/index.mdx"
-              echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
               echo 'import LabelIcons from "../../../../src/components/LabelIcons";' > "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "# 문서개요" >> "$MONTH_DIR/index.mdx"
