@@ -66,7 +66,7 @@ jobs:
 
             echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$MDX_FILE"
+            echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$MDX_FILE"
             echo "" >> "$MDX_FILE"
             echo "| 제목 | 바로가기 | Summary |" >> "$MDX_FILE"
             echo "|------|----------|---------|" >> "$MDX_FILE"
@@ -125,7 +125,7 @@ jobs:
 
           # 태그 모음 index.mdx 생성 (태그별로 nextra/github 링크 표)
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
+          echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
@@ -187,7 +187,7 @@ jobs:
             # 연도별 index.mdx (월별 표)
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
-            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
+            echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|----------|" >> "$YEAR_DIR/index.mdx"
@@ -223,7 +223,7 @@ jobs:
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
+              echo '> <img src="/vercel.png" width="18" style="vertical-align:middle" /> : Nextra(포트폴리오)   <img src="/github.png" width="18" style="vertical-align:middle" /> : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|----------|" >> "$MONTH_DIR/index.mdx"
