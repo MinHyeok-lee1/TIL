@@ -84,14 +84,15 @@ jobs:
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
+              # 요약 값 정리
               SUMMARY=$(echo "$SUMMARY" | xargs) # Clean up spaces from summary
 
-              # Ensure summary is correctly handled
-              if [[ -z "$SUMMARY" || "$SUMMARY" == "No summary available" ]]; then
-                SUMMARY="No summary available" # Default text if the summary is empty or the same placeholder
+              # 요약이 비어 있으면 기본 값 대신 "No summary available"로 설정
+              if [[ -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
+                SUMMARY="No summary available"
               fi
 
-              # 로그를 출력하여 SUMMARY 값 확인
+              # 디버깅: SUMMARY 값 확인
               echo "SUMMARY: $SUMMARY"
 
               # 테이블에 내용 추가
