@@ -237,6 +237,11 @@ jobs:
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
 
+          # safe_tag 변환 함수 선언 (위와 완전히 동일)
+          to_safe_tag() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
+          }
+
           if [ ! -d "$BASE" ]; then
             echo "$BASE 디렉토리 없음. tag table generation 스킵."
             exit 0
@@ -266,7 +271,8 @@ jobs:
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
 
             for tag in "${tagarr[@]}"; do
-              safe_tag=$(echo "$tag" | tr -c '[:alnum:]_' '_')
+              safe_tag=$(to_safe_tag "$tag")   # << 이 부분이 핵심!
+              [ -z "$safe_tag" ] && continue
               echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
@@ -274,6 +280,7 @@ jobs:
           shopt -s nullglob
           for LIST in "$TAGS_DIR"/*.list; do
             safe_tag=$(basename "$LIST" .list)
+            [ -z "$safe_tag" ] && continue
             mdx="$TAGS_DIR/$safe_tag.mdx"
             safe_tag_path="../../../src/components/LabelIcons"
             echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
@@ -286,11 +293,7 @@ jobs:
             echo "|------|----------|------|" >> "$mdx"
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY; do
               TITLE="${FNAME//-/ }"
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >> "$mdx"
-            done
-            rm "$LIST"
-          done
-          shopt -u nullglob
+              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) | $SUMMARY |" >_)_)
 
       - name: Commit and Push
         run: |
