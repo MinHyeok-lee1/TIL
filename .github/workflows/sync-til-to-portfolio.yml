@@ -122,19 +122,17 @@ jobs:
           mkdir -p "$TAGS_DIR"
 
           # tags/_meta.json
-          TAG_META_ITEMS=()
+          TAG_META_ITEMS=""
           for FILE in "$TAGS_DIR"/*.mdx; do
             [ -f "$FILE" ] || continue
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
-            TAG_META_ITEMS+=("\"$NAME\": \"$NAME 태그\"")
+            TAG_META_ITEMS="$TAG_META_ITEMS  ,\"$NAME\": \"$NAME 태그\""
           done
           {
             echo "{"
             echo '  "index": "문서개요"'
-            for ITEM in "${TAG_META_ITEMS[@]}"; do
-              echo "  ,$ITEM"
-            done
+            echo "$TAG_META_ITEMS"
             echo "}"
           } > "$TAGS_DIR/_meta.json"
 
