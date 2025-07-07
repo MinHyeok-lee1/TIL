@@ -89,8 +89,8 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # YAML front matter에서 summary 값 추출 (잘못된 방법을 고쳤습니다)
-              SUMMARY=$(grep -oP 'summary: "(.*)"' "$FILE" | sed 's/summary: "//;s/"//g')
+              # YAML front matter에서 summary 값 추출
+              SUMMARY=$(awk '/^summary:/ { print substr($0, index($0,$2)) }' "$FILE" | sed 's/summary: "//;s/"//g')
 
               # 요약이 비정상적인 값일 경우 'No summary available'로 대체
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
