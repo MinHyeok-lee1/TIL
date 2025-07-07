@@ -36,7 +36,6 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # TIL 본문 md → mdx로 변환/복사
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
@@ -55,67 +54,11 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
+
           shopt -s nullglob
-
-          # safe_tag 변환 함수 (모든 태그 변환에 이 함수만 쓸 것!)
-          to_safe_tag() {
-            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
-          }
-
-          # 모든 기존 mdx 정리(중복 방지)
-          find "$TAGS_DEST" -type f -name "*.mdx" -delete
-
           for FILE in "$TAGS_SRC"/*.md; do
-            TAG_RAW=$(basename "$FILE" .md)
-            safe_tag=$(to_safe_tag "$TAG_RAW")
-            MDX_FILE="$TAGS_DEST/$safe_tag.mdx"
-
-            # 헤더 통일 (너가 원하는 순서, 컬럼명만)
-            echo "# 🏷️ $safe_tag TIL 모음" > "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
-            echo "|------|------|----------|" >> "$MDX_FILE"
-
-            # 아래 파싱은 md 원본 구조에 맞게 그대로
-            awk '
-              BEGIN {skip=0}
-              /^ *\|/ {
-                if (skip++ < 2) next
-                n=split($0,arr,"|")
-                if(n<5) next
-                title=arr[2]
-                gsub(/^[ \t]+|[ \t]+$/, "", title)
-                gsub(/^[ \t]+|[ \t]+$/, "", arr[3])
-                gsub(/^[ \t]+|[ \t]+$/, "", arr[4])
-
-                # 링크 파싱
-                linktext=title
-                glink=""
-                bl = index(title, "[")
-                br = index(title, "]")
-                pl = index(title, "(")
-                pr = index(title, ")")
-                if (bl && br && pl && pr && br < pl && pl < pr) {
-                  linktext=substr(title, bl+1, br-bl-1)
-                  glink=substr(title, pl+1, pr-pl-1)
-                }
-
-                split(arr[3], datepart, "-")
-                y=(length(datepart[1]) ? datepart[1] : "")
-                m=(length(datepart[2]) ? datepart[2] : "")
-                slug=""
-                if(glink ~ /\.md$/) {
-                  n=split(glink,pp,"/")
-                  slug=pp[n]
-                  sub(/\.md$/,"",slug)
-                }
-                nextralink= (y && m && slug) ? ("/til/til-" y "/til-" m "/" slug) : ""
-                summary=arr[4]
-
-                if(linktext && nextralink && glink)
-                  printf("| %s | %s | [Nextra](%s) \\| [GitHub](%s) |\n", linktext, summary, nextralink, glink)
-              }
-            ' "$FILE" >> "$MDX_FILE"
+            NAME=$(basename "$FILE" .md)
+            cp "$FILE" "$TAGS_DEST/$NAME.mdx"
           done
           shopt -u nullglob
 
