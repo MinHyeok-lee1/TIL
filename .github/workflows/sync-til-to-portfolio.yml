@@ -62,11 +62,10 @@ jobs:
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             NAME=$(basename "$FILE" .md)
-            SAFE_NAME=$(to_safe_tag "$NAME")
-            MDX_FILE="$TAGS_DEST/$SAFE_NAME.mdx"
+            MDX_FILE="$TAGS_DEST/$NAME.mdx"
 
             # 헤더 생성
-            echo "# 🏷️ $SAFE_NAME TIL 모음" > "$MDX_FILE"
+            echo "# 🏷️ $NAME TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
