@@ -93,13 +93,18 @@ jobs:
               echo "File: $FILE"
 
 
-              SUMMARY=$(awk 'NR>2 {print $3}' "$FILE" | sed 's/|//g' | sed 's/^ *//;s/ *$//')
+              # 각 파일에서 Title, Date, Summary 추출
+              SUMMARY=$(awk 'NR>2 {print $3}' "$FILE" | sed 's/|//g' | sed 's/ *$//;s/^ *//')
+
               # 요약이 비정상적인 값일 경우 'No summary available'로 대체
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
               fi
+
               # 디버깅: SUMMARY 값 확인
               echo "SUMMARY: $SUMMARY"
+              echo "Extracted Summary from $FILE: $SUMMARY"
+
 
 
               # 테이블에 내용 추가
