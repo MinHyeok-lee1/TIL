@@ -64,10 +64,9 @@ jobs:
             TAG_NAME=$(basename "$FILE" .md)
             MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
 
-            # MDX 파일 테이블 헤더 생성
             echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            echo '> <img src="/vercel.png" width="16" style="vertical-align:middle" />: Nextra(포트폴리오)  <img src="/github.png" width="16" style="vertical-align:middle" />: GitHub(원본)' >> "$MDX_FILE"
+            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$MDX_FILE"
             echo "" >> "$MDX_FILE"
             echo "| 제목 | 바로가기 | Summary |" >> "$MDX_FILE"
             echo "|------|----------|---------|" >> "$MDX_FILE"
@@ -126,14 +125,14 @@ jobs:
 
           # 태그 모음 index.mdx 생성 (태그별로 nextra/github 링크 표)
           echo "# 🏷️ 태그 모음" > "$TAGS_DIR/index.mdx"
-          echo '> <img src="/vercel.png" width="16" style="vertical-align:middle" />: Nextra(포트폴리오)  <img src="/github.png" width="16" style="vertical-align:middle" />: GitHub(원본)' >> "$TAGS_DIR/index.mdx"
+          echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
-            echo "| $NAME | <a href=\"/til/tags/$NAME\"><img src=\"/vercel.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"Nextra\"/></a> \| <a href=\"https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md\"><img src=\"/github.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"GitHub\"/></a> |" >> "$TAGS_DIR/index.mdx"
+            echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       # 6. TIL 연/월별 _meta.json 및 index.mdx 파일 일괄 생성 (네비/목차, nextra, github 링크)
@@ -188,14 +187,14 @@ jobs:
             # 연도별 index.mdx (월별 표)
             echo "# 문서개요" > "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
-            echo '> <img src="/vercel.png" width="16" style="vertical-align:middle" />: Nextra(포트폴리오)  <img src="/github.png" width="16" style="vertical-align:middle" />: GitHub(원본)' >> "$YEAR_DIR/index.mdx"
+            echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$YEAR_DIR/index.mdx"
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
             echo "|----|----------|" >> "$YEAR_DIR/index.mdx"
             for MONTH_DIR in "$YEAR_DIR"/til-*; do
               [ -d "$MONTH_DIR" ] || continue
               MONTH=$(basename "$MONTH_DIR" | cut -d'-' -f2)
-              echo "| ${MONTH}월 | <a href=\"/til/til-$YEAR/til-$MONTH\"><img src=\"/vercel.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"Nextra\"/></a> \| <a href=\"https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH\"><img src=\"/github.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"GitHub\"/></a> |" >> "$YEAR_DIR/index.mdx"
+              echo "| ${MONTH}월 | [Nextra](/til/til-$YEAR/til-$MONTH) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH) |" >> "$YEAR_DIR/index.mdx"
             done
 
             # 월별 index.mdx (일/제목 표) 및 월별 _meta.json
@@ -220,18 +219,18 @@ jobs:
                 done
                 echo "}"
               } > "$MONTH_DIR/_meta.json"
-               
+
               MONTH_NUM=$(basename "$MONTH_DIR" | cut -d'-' -f2)
               echo "# 문서개요" > "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
-              echo '> <img src="/vercel.png" width="16" style="vertical-align:middle" />: Nextra(포트폴리오)  <img src="/github.png" width="16" style="vertical-align:middle" />: GitHub(원본)' >> "$MONTH_DIR/index.mdx"
+              echo '> ![Nextra](/vercel.png) : Nextra(포트폴리오)   ![GitHub](/github.png) : GitHub(원본)' >> "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
               echo "|------|----------|" >> "$MONTH_DIR/index.mdx"
               for FNAME in "${FILES[@]}"; do
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                echo "| ${DAY}일 ${TITLE_CLEAN} | <a href=\"/til/til-$YEAR/til-$MONTH_NUM/$FNAME\"><img src=\"/vercel.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"Nextra\"/></a> \| <a href=\"https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md\"><img src=\"/github.png\" width=\"18\" style=\"vertical-align:middle\" alt=\"GitHub\"/></a> |" >> "$MONTH_DIR/index.mdx"
+                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
               done
             done
           done
