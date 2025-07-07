@@ -65,12 +65,17 @@ jobs:
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
 
-            # 본문 행 파싱해서 변환
-            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
-              # 헤더/구분선/빈행 패스
-              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
+            # 표 데이터 파싱 - 헤더, 구분선, 빈 행 skip
+            grep '^|' "$FILE" | tail -n +3 | while read -r LINE; do
+              # 행에서 각 필드 추출 (공백 포함해서 잘라냄)
+              TITLE=$(echo "$LINE" | awk -F'|' '{print $2}' | xargs)
+              DATE=$(echo "$LINE" | awk -F'|' '{print $3}' | xargs)
+              SUMMARY=$(echo "$LINE" | awk -F'|' '{print $4}' | xargs)
 
-              # TITLE에서 [텍스트](링크) 분리
+              # 비어있거나 헤더/구분선은 무시
+              [[ -z "$TITLE" || "$TITLE" == "Title" || "$TITLE" == "------" ]] && continue
+
+              # TITLE에서 [텍스트](링크) 추출
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
 
@@ -79,6 +84,8 @@ jobs:
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+
+              # 요약 전처리 (앞뒤 공백)
               SUMMARY=$(echo "$SUMMARY" | xargs)
 
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
