@@ -1,13 +1,15 @@
 name: 🔄 Sync TIL to Portfolio
 
 on:
-  push:
-    branches: [main]
-    paths: ["**/*.md"]
+  workflow_run:
+    workflows: ["🏷️ Generate Tag Pages from TIL"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   sync-til:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout TIL repo
@@ -52,11 +54,35 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
-
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            NAME=$(basename "$FILE" .md)
-            cp "$FILE" "$TAGS_DEST/$NAME.mdx"
+            TAG_NAME=$(basename "$FILE" .md)
+            MDX_FILE="$TAGS_DEST/$TAG_NAME.mdx"
+
+            # MDX 파일 테이블 헤더 생성
+            echo "# 🏷️ $TAG_NAME TIL 모음" > "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+            echo "|------|------|----------|" >> "$MDX_FILE"
+
+            # 본문 행 파싱해서 변환
+            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
+              # 헤더/구분선/빈행 패스
+              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
+
+              # TITLE에서 [텍스트](링크) 분리
+              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
+              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+
+              # slug: 깃허브 링크에서 마지막 segment 추출, .md 떼고 사용
+              SLUG=$(basename "$GITHUB_LINK" .md)
+              Y=$(echo "$DATE" | cut -d'-' -f1)
+              M=$(echo "$DATE" | cut -d'-' -f2)
+              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+              SUMMARY=$(echo "$SUMMARY" | xargs)
+
+              echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+            done
           done
           shopt -u nullglob
 
