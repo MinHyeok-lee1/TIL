@@ -91,14 +91,16 @@ jobs:
 
               # YAML front matter에서 summary 값 추출
               echo "File: $FILE"
-              SUMMARY=$(awk '/| Summary |/ {getline; print $3}' "$FILE")
+
+
+              SUMMARY=$(awk 'NR>2 {print $3}' "$FILE" | sed 's/|//g' | sed 's/^ *//;s/ *$//')
               # 요약이 비정상적인 값일 경우 'No summary available'로 대체
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
               fi
-
               # 디버깅: SUMMARY 값 확인
               echo "SUMMARY: $SUMMARY"
+
 
               # 테이블에 내용 추가
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
