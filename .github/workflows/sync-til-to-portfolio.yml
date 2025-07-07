@@ -232,13 +232,17 @@ jobs:
           TAGS_DIR="$BASE/tags"
           mkdir -p "$TAGS_DIR"
 
+          to_safe_tag() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
+          }
+
           files=$(find "$BASE"/til-*/*/*.mdx -type f)
           if [ -z "$files" ]; then
             echo "No mdx files found for tags. Skipping tag table generation."
             exit 0
           fi
 
-          echo "$files" | while read FILE; do
+          for FILE in $files; do
             yaml=$(awk '/^---/ {i++} i==1; i==2 {exit}' "$FILE" | sed '1d;$d')
             tag_line=$(echo "$yaml" | grep "^tags:") || true
             [ -z "$tag_line" ] && continue
