@@ -69,7 +69,7 @@ jobs:
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            
+
             # index.mdx 파일의 경우 요약을 제외하고 생성
             if [[ "$SAFE_TAG" == "index" ]]; then
               echo "| 태그 | 바로가기 |" >> "$MDX_FILE"
@@ -96,8 +96,12 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # 요약 추출 (YAML front matter에서 summary 추출)
+              # summary 값을 확인하기 위한 로그 추가
+              echo "Extracting summary from $FILE"
               SUMMARY=$(grep -m 1 '^summary:' "$FILE" | sed 's/summary:[ ]*//')
+
+              # 로그 출력
+              echo "Extracted summary: $SUMMARY"
 
               # 요약이 비어 있거나 잘못된 값이면 "No summary available"로 처리
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
