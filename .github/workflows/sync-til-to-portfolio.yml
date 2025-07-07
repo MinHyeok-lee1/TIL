@@ -96,6 +96,9 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
+              # 요약 추출 (YAML front matter에서 summary 추출)
+              SUMMARY=$(grep -m 1 '^summary:' "$FILE" | sed 's/summary:[ ]*//')
+
               # 요약이 비어 있거나 잘못된 값이면 "No summary available"로 처리
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
                 SUMMARY="No summary available"
