@@ -34,6 +34,11 @@ jobs:
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til"
 
+          # safe_tag 변환 함수
+          to_safe_tag() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
+          }
+
           mkdir -p "$DEST_BASE"
 
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
@@ -54,14 +59,14 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
-
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             NAME=$(basename "$FILE" .md)
-            MDX_FILE="$TAGS_DEST/$NAME.mdx"
+            SAFE_NAME=$(to_safe_tag "$NAME")
+            MDX_FILE="$TAGS_DEST/$SAFE_NAME.mdx"
 
             # 헤더 생성
-            echo "# 🏷️ $NAME TIL 모음" > "$MDX_FILE"
+            echo "# 🏷️ $SAFE_NAME TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
@@ -81,6 +86,11 @@ jobs:
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
             done
           done
+          shopt -u nullglob
+
+          # 혹시 남은 *_ 또는 _.mdx 정리(예방차원)
+          find "$TAGS_DEST" -type f -name "*_.mdx" -delete
+          find "$TAGS_DEST" -type f -name "_.mdx" -delete
 
       - name: Create tags/_meta.json and index.mdx
         run: |
