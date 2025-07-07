@@ -63,7 +63,6 @@ jobs:
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             ORG_TAG_NAME=$(basename "$FILE" .md)
-            # safe_tag로만 파일 만듦 (소문자 + _)
             SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
             MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"
 
@@ -83,14 +82,19 @@ jobs:
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-              SUMMARY=$(echo "$SUMMARY" | xargs)
+              SUMMARY=$(echo "$SUMMARY" | xargs) # Clean up spaces from summary
+
+              # Ensure summary is correctly handled
+              if [[ -z "$SUMMARY" ]]; then
+                SUMMARY="No summary available" # Default text if the summary is empty
+              fi
 
               echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
             done
           done
           shopt -u nullglob
 
-          # 기존에 잘못 생긴 태그 파일(.mdx) 중에서 safe_tag 아닌 이름은 모두 삭제
+          # Delete invalid tag files (safe_tag name only)
           find "$TAGS_DIR" -type f ! -name "_meta.json" ! -name "index.mdx" ! -regex '.*/[a-z0-9_]\+\.mdx' -delete
 
       - name: Create tags/_meta.json and index.mdx
