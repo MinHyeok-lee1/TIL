@@ -9,7 +9,7 @@ on:
 
 jobs:
   sync-til:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout TIL repo
@@ -54,20 +54,20 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
-
-          # 기존 mdx 태그파일 전체 삭제 (중복 방지)
-          rm -f "$TAGS_DEST"/*.mdx
+          # 모든 중간 산출물 파일 삭제
+          rm -f "$TAGS_DEST"/*.mdx "$TAGS_DEST"/*.list
+          find "$TAGS_DEST" -type f -name "*_.mdx" -delete
           shopt -s nullglob
-
-          # Bash 4+ associative array (딕셔너리)
           declare -A CREATED_TAGS
 
           for FILE in "$TAGS_SRC"/*.md; do
             [ -f "$FILE" ] || continue
 
-            # md파일의 tag이름 추출(쉼표로 분리)
             TAGS_RAW=$(basename "$FILE" .md)
             IFS=',' read -ra TAGS <<< "$TAGS_RAW"
+            for i in "${!TAGS[@]}"; do
+              TAGS[$i]=$(echo "${TAGS[$i]}" | xargs)
+            done
 
             grep '^|' "$FILE" | tail -n +3 | while read -r LINE; do
               COL_COUNT=$(echo "$LINE" | awk -F'|' '{print NF}')
@@ -86,10 +86,9 @@ jobs:
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
               for TAG in "${TAGS[@]}"; do
-                # clean tag name (알파벳, 숫자만, 언더스코어 여러개 정리, 양끝 제거)
-                safe_tag=$(echo "$TAG" | tr -c '[:alnum:]' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+                # safe_tag: 소문자+숫자만, 나머지 전부 언더스코어로 통일, 여러개 연속되면 1개로, 양끝 제거
+                safe_tag=$(echo "$TAG" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
                 MDX_PATH="$TAGS_DEST/$safe_tag.mdx"
-                # 헤더가 없으면 생성
                 if [ -z "${CREATED_TAGS[$safe_tag]}" ]; then
                   echo "# 🏷️ $safe_tag TIL 모음" > "$MDX_PATH"
                   echo "" >> "$MDX_PATH"
@@ -97,11 +96,11 @@ jobs:
                   echo "|------|------|----------|" >> "$MDX_PATH"
                   CREATED_TAGS[$safe_tag]=1
                 fi
-                # 중복 방지: 같은 내용 여러번 안 들어가게 체크 가능 (여기서는 불필요하면 생략)
                 echo "| $LINK_TEXT | $SUMMARY | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_PATH"
               done
             done
           done
+          find "$TAGS_DEST" -type f -name "*_.mdx" -delete  # 끝나고 혹시 생긴 _ 삭제
           shopt -u nullglob
 
       - name: Create tags/_meta.json and index.mdx
