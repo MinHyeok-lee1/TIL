@@ -110,13 +110,16 @@ jobs:
             [ "$NAME" = "index" ] && continue
             TAG_META_ITEMS+=("\"$NAME\": \"$NAME 태그\"")
           done
+
+          # Ensure valid JSON format by handling commas properly
           {
             echo "{"
             echo '  "index": "문서개요"'
             for ITEM in "${TAG_META_ITEMS[@]}"; do
               echo "  ,$ITEM"
             done
-            echo "} > $TAGS_DIR/_meta.json"
+            echo "}"
+          } > "$TAGS_DIR/_meta.json"
 
           echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
@@ -131,6 +134,11 @@ jobs:
             SUMMARY=""
             if [[ ! -z "$FIRST_ROW" ]]; then
               SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
+            fi
+
+            # Ensure we always provide a valid summary
+            if [[ -z "$SUMMARY" ]]; then
+              SUMMARY="No summary available" # Default value if summary is empty
             fi
             echo "| $NAME | $SUMMARY | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
