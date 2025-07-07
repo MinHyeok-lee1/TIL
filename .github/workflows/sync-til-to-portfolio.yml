@@ -130,16 +130,19 @@ jobs:
             [ "$NAME" = "index" ] && continue
             FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
             SUMMARY=""
-            if [[ ! -z "$FIRST_ROW" ]]; then
-              SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
+            if [[ -f "$FILE" ]]; then
+              # Fetch the first valid summary row (skip empty or invalid ones)
+              FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
+              
+              if [[ -n "$FIRST_ROW" ]]; then
+                SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
+              fi
             fi
 
-            # Ensure we always provide a valid summary
+            # If SUMMARY is empty, use default placeholder
             if [[ -z "$SUMMARY" ]]; then
-              SUMMARY="No summary available" # Default value if summary is empty
+              SUMMARY="No summary available!!"
             fi
-            echo "| $NAME | $SUMMARY | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
-          done
 
       - name: Create all _meta.json and index.mdx files
         run: |
