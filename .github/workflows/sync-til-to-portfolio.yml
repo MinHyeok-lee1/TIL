@@ -119,12 +119,17 @@ jobs:
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "# 🏷️ 태그 모음" >> "$TAGS_DIR/index.mdx"
           echo "<LabelIcons />" >> "$TAGS_DIR/index.mdx"
-          echo "| 태그 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
-          echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
+          echo "| 태그 | 요약 | 바로가기 |" >> "$TAGS_DIR/index.mdx"
+          echo "|------|------|----------|" >> "$TAGS_DIR/index.mdx"
           for FILE in "$TAGS_DIR"/*.mdx; do
             NAME=$(basename "$FILE" .mdx)
             [ "$NAME" = "index" ] && continue
-            echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
+            FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
+            SUMMARY=""
+            if [[ ! -z "$FIRST_ROW" ]]; then
+              SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
+            fi
+            echo "| $NAME | $SUMMARY | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
       - name: Create all _meta.json and index.mdx files
