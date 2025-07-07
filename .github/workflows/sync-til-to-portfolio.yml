@@ -131,17 +131,17 @@ jobs:
             FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
             SUMMARY=""
             if [[ -f "$FILE" ]]; then
-              # Fetch the first valid summary row (skip empty or invalid ones)
               FIRST_ROW=$(awk 'NR>4 && NF {print; exit}' "$FILE")
-              
+
+              # First valid summary line extraction
               if [[ -n "$FIRST_ROW" ]]; then
                 SUMMARY=$(echo "$FIRST_ROW" | awk -F'|' '{print $3}' | xargs)
               fi
             fi
 
-            # If SUMMARY is empty, use default placeholder
+            # SUMMARY가 비어 있다면 기본값 설정
             if [[ -z "$SUMMARY" ]]; then
-              SUMMARY="No summary available!!"
+              SUMMARY="No summary available"
             fi
 
       - name: Create all _meta.json and index.mdx files
