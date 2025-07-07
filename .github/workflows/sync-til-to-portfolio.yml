@@ -96,12 +96,8 @@ jobs:
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # summary 값을 확인하기 위한 로그 추가
-              echo "Extracting summary from $FILE"
-              SUMMARY=$(grep -m 1 '^summary:' "$FILE" | sed 's/summary:[ ]*//')
-
-              # 로그 출력
-              echo "Extracted summary: $SUMMARY"
+              # summary 추출 (YAML front matter에서 summary만 찾음)
+              SUMMARY=$(awk 'BEGIN {found=0} /^summary:/ {found=1; print $2} END {if (found==0) print "No summary available"}' "$FILE")
 
               # 요약이 비어 있거나 잘못된 값이면 "No summary available"로 처리
               if [[ -z "$SUMMARY" || "$SUMMARY" =~ ^(Summary|-----|^$) ]]; then
