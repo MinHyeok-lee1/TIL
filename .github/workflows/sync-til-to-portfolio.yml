@@ -54,16 +54,19 @@ jobs:
           TAGS_SRC="$SRC_BASE/tags"
           TAGS_DEST="$DEST_BASE/tags"
           mkdir -p "$TAGS_DEST"
-          # 모든 중간 산출물 파일 삭제
+
+          # 기존 mdx/tag list 파일 싹 삭제
           rm -f "$TAGS_DEST"/*.mdx "$TAGS_DEST"/*.list
-          find "$TAGS_DEST" -type f -name "*_.mdx" -delete
+
           shopt -s nullglob
           declare -A CREATED_TAGS
 
           for FILE in "$TAGS_SRC"/*.md; do
             [ -f "$FILE" ] || continue
 
+            # 파일명에서 여러 태그가 콤마로 붙었으면 split
             TAGS_RAW=$(basename "$FILE" .md)
+            # 콤마로 나누고 각각 트림
             IFS=',' read -ra TAGS <<< "$TAGS_RAW"
             for i in "${!TAGS[@]}"; do
               TAGS[$i]=$(echo "${TAGS[$i]}" | xargs)
@@ -86,8 +89,10 @@ jobs:
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
               for TAG in "${TAGS[@]}"; do
-                # safe_tag: 소문자+숫자만, 나머지 전부 언더스코어로 통일, 여러개 연속되면 1개로, 양끝 제거
+                # clean: 소문자, 숫자, 언더스코어만, 나머진 _로, 중복_정리, 끝_제거
                 safe_tag=$(echo "$TAG" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+                # 빈 문자열은 건너뜀
+                [ -z "$safe_tag" ] && continue
                 MDX_PATH="$TAGS_DEST/$safe_tag.mdx"
                 if [ -z "${CREATED_TAGS[$safe_tag]}" ]; then
                   echo "# 🏷️ $safe_tag TIL 모음" > "$MDX_PATH"
@@ -100,8 +105,11 @@ jobs:
               done
             done
           done
-          find "$TAGS_DEST" -type f -name "*_.mdx" -delete  # 끝나고 혹시 생긴 _ 삭제
           shopt -u nullglob
+
+          # 마지막에 혹시라도 남은 *_.mdx 삭제
+          find "$TAGS_DEST" -type f -name "*_.mdx" -delete
+          find "$TAGS_DEST" -type f -name "_.mdx" -delete
 
       - name: Create tags/_meta.json and index.mdx
         run: |
