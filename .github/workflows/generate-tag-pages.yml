@@ -44,6 +44,7 @@ jobs:
                       relpath = path.relative_to(root_dir).as_posix()
                       link = f"{REPO_URL}{relpath}"
                       for tag in tags:
+                          safe_tag = tag.replace("/", "-")  # Indent this line properly
                           tag_map.setdefault(tag, []).append(
                               (title, date, summary, link)
                           )
@@ -54,14 +55,14 @@ jobs:
           os.makedirs("tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
-          # ✅ 슬래시 포함된 태그 방어 처리
-          safe_tag = tag.replace("/", "-")
-          entries.sort(key=lambda x: str(x[2]), reverse=True)  # summary로 정렬 (index 2)
-          content = f"# 🏷️ Tag: {tag}\n\n| Title | Summary | Date |\n|-------|------|---------|\n"
-          for title, date, summary, link in entries:
-              content += f"| [{title}]({link}) | {summary} | {date} |\n" 
-          with open(f"tags/{safe_tag}.md", "w", encoding="utf-8") as f:
-              f.write(content)
+              # ✅ 슬래시 포함된 태그 방어 처리
+              safe_tag = tag.replace("/", "-")
+              entries.sort(key=lambda x: str(x[1]), reverse=True)
+              content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
+              for title, date, summary, link in entries:
+                  content += f"| [{title}]({link}) | {date} | {summary} |\n"
+              with open(f"tags/{safe_tag}.md", "w", encoding="utf-8") as f:
+                  f.write(content)
           EOF
 
       - name: Commit and Push if Changed
