@@ -61,24 +61,26 @@ jobs:
           mkdir -p "$TAGS_DIR"
 
           shopt -s nullglob
+          # `*`라는 이름의 .mdx 파일만 제외하고 나머지 .mdx 파일은 처리
           for FILE in "$TAGS_SRC"/*.md; do
-            # .mdx가 아닌 특정 이름의 mdx 파일을 만들지 않기 위한 수정
-            if [[ "$(basename "$FILE" .md)" == "*" ]]; then
+            ORG_TAG_NAME=$(basename "$FILE" .md)
+            
+            # `*`라는 이름의 mdx 파일만 제외
+            if [[ "$ORG_TAG_NAME" == "*" ]]; then
               echo "Skipping file with name *: $FILE"
-              continue  # *라는 이름의 mdx 파일은 건너뜁니다.
+              continue  # `*`라는 이름의 mdx 파일은 건너뜁니다.
             fi
 
-            ORG_TAG_NAME=$(basename "$FILE" .md)
             SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
             
-            # .mdx 파일을 만들지 않고, * 대신 다른 mdx 파일만 생성
-            MD_FILE="$TAGS_DIR/$SAFE_TAG.md"  # .md로만 저장
+            # `.mdx` 파일을 정상적으로 생성
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # .mdx 파일 생성
 
             # 헤더 생성
-            echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MD_FILE"
-            echo "" >> "$MD_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MD_FILE"
-            echo "|------|------|----------|" >> "$MD_FILE"
+            echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+            echo "|------|------|----------|" >> "$MDX_FILE"
 
             # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
@@ -100,7 +102,7 @@ jobs:
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
               # 테이블에 제목, 요약, 바로가기 추가
-              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MD_FILE"
+              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
             done
           done
           shopt -u nullglob
