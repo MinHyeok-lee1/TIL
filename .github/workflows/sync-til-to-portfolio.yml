@@ -188,8 +188,8 @@ jobs:
               echo "|------|----------|" >> "$SUMMARY_FILE"
             fi
 
-            # Prepare the filenames array
-            FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md" ! -path "$SRC_BASE/tags/*"))
+            # Prepare the filenames array and remove duplicates
+            FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | sort -u))
 
             # Loop through each file and append to the table
             for FNAME in "${FILES[@]}"; do
