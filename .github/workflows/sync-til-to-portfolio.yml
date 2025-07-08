@@ -301,7 +301,17 @@ jobs:
 
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
               TITLE="${FNAME//-/ }"
-              SUMMARY_TEXT="요약 없음"  # 추후 실제 summary로 대체 가능
+
+              # 실제 MD 파일 경로 (수정 필요: 위치 정확히 반영해야 함)
+              MD_FILE_PATH="$TAGS_SRC/$FNAME.md"
+
+              if [[ -f "$MD_FILE_PATH" ]]; then
+                # summary 값 추출
+                SUMMARY_TEXT=$(awk '/^summary:/ { sub(/^summary:[ ]*/, ""); print; exit }' "$MD_FILE_PATH")
+                [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="요약 없음"
+              else
+                SUMMARY_TEXT="요약 없음"
+              fi
 
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
