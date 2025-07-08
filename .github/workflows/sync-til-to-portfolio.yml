@@ -142,13 +142,10 @@ jobs:
             echo "| $NAME | [Nextra](/til/tags/$NAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/tags/$NAME.md) |" >> "$TAGS_DIR/index.mdx"
           done
 
-      - name: Create summaries folder and generate summary pages
+      - name: Create summaries and generate summary pages
         run: |
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til/summaries"
-
-          # Create summaries directory if it doesn't exist
-          mkdir -p "$DEST_BASE"
 
           # Process TIL files to generate summary pages
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
@@ -170,14 +167,23 @@ jobs:
             # Debugging: Check if summary is being extracted correctly
             echo "Summary: $summary"
 
-            # Create the summaries file for the month
-            MONTH_FILE="$DEST_BASE/$YEAR/$MONTH-summaries.mdx"
-            mkdir -p "$(dirname "$MONTH_FILE")"
-            echo "# 📝 Summary Pages for $MONTH/$YEAR" >> "$MONTH_FILE"
-            echo "<LabelIcons />" >> "$MONTH_FILE"
-            echo "| 요약 | 바로가기 |" >> "$MONTH_FILE"
-            echo "|---------|------|" >> "$MONTH_FILE"
-            echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$MONTH_FILE"
+            # Create a single summary file for the year (2025-summaries.mdx)
+            SUMMARY_FILE="$DEST_BASE/$YEAR-summaries.mdx"
+            mkdir -p "$(dirname "$SUMMARY_FILE")"
+
+            # Include LabelIcons import at the beginning of the file if not already added
+            echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$SUMMARY_FILE"
+            echo "<LabelIcons />" >> "$SUMMARY_FILE"
+
+            # Append a new month table if it doesn't exist already
+            if ! grep -q "## $MONTH월" "$SUMMARY_FILE"; then
+              echo "## $MONTH월" >> "$SUMMARY_FILE"
+              echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
+              echo "|---------|------|" >> "$SUMMARY_FILE"
+            fi
+
+            # Append the summary entry for the current file
+            echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$SUMMARY_FILE"
 
             # Debugging: Ensure the summary is written to the file
             echo "Written summary for file $FILE"
