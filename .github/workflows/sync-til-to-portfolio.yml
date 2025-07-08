@@ -183,8 +183,8 @@ jobs:
               echo "" >> "$SUMMARY_FILE"
               echo "## $MONTH월" >> "$SUMMARY_FILE"
               echo "" >> "$SUMMARY_FILE"
-              echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
-              echo "|---------|------|" >> "$SUMMARY_FILE"
+              echo "| Title | Summary |" >> "$SUMMARY_FILE"
+              echo "|-------|---------|" >> "$SUMMARY_FILE"
             fi
 
             # Prepare the filenames array for the current month and year
@@ -210,8 +210,9 @@ jobs:
 
               # Check if the GitHub link has already been added to avoid duplicates
               if [[ ! " ${ADDED_GITHUB_LINKS[@]} " =~ " ${GITHUB_PATH} " ]]; then
-                # Add table entry for each file with the summary in the first column
-                echo "| $summary | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
+                # Add table entry for each file with the summary in the second column
+                TITLE=$(echo "$FNAME" | sed 's/-/ /g' | sed 's/\([a-z]\)\([A-Z]\)/\1 \2/g')  # Format file title
+                echo "| [$TITLE](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) | $summary |" >> "$SUMMARY_FILE"
                 ADDED_GITHUB_LINKS+=("$GITHUB_PATH")  # Mark the GitHub link as added
               fi
             done
