@@ -38,29 +38,42 @@ jobs:
                   if len(parts) >= 3:
                       meta = yaml.safe_load(parts[1]) or {}
                       title = meta.get("title", path.name)
-                      summary = meta.get("summary", "")  # summary를 제대로 가져옴
+                      summary = meta.get("summary", "No summary available")  # 비어있는 summary 처리
                       date = meta.get("date", "")
+                      year, month, _ = date.split("-") if date else ("", "", "")
                       relpath = path.relative_to(root_dir).as_posix()
-                      link = f"{REPO_URL}{relpath}"
 
-                      if summary:
-                          summary_map[title] = {
+                      # 요약 페이지 생성에 필요한 데이터 저장
+                      if year and month:
+                          summary_map.setdefault(year, {}).setdefault(month, []).append({
+                              "title": title,
                               "summary": summary,
-                              "link": link,
                               "date": date
-                          }
+                          })
+
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
+          # Create year and month folders for summaries
           os.makedirs("summaries", exist_ok=True)
 
-          # Create a summary page for all entries
-          content = "# 📝 Summary Pages\n\n| Title | Summary | Link |\n|-------|---------|------|\n"
-          for title, details in summary_map.items():
-              content += f"| [{title}]({details['link']}) | {details['summary']} | {details['date']} |\n"
+          for year, months in summary_map.items():
+              year_dir = os.path.join("summaries", year)
+              os.makedirs(year_dir, exist_ok=True)
 
-          with open("summaries/index.md", "w", encoding="utf-8") as f:
-              f.write(content)
+              for month, entries in months.items():
+                  month_dir = os.path.join(year_dir, f"{month}-summaries")
+                  os.makedirs(month_dir, exist_ok=True)
+
+                  # Create a summary page for the month
+                  content = f"# 📝 Summary Pages for {month}/{year}\n\n| Title | Summary | Date |\n|-------|---------|------|\n"
+                  for entry in entries:
+                      content += f"| {entry['title']} | {entry['summary']} | {entry['date']} |\n"
+
+                  # Write the month summary page
+                  month_summary_path = os.path.join(month_dir, "index.md")
+                  with open(month_summary_path, "w", encoding="utf-8") as f:
+                      f.write(content)
 
           EOF
 
@@ -69,5 +82,5 @@ jobs:
           git config user.name "MinHyeok-lee1"
           git config user.email "minhyeok.lee1@gmail.com"
           git add summaries
-          git diff --cached --quiet || git commit -m "📝 update: auto-generated summary pages"
+          git diff --cached --quiet || git commit -m "📝 update: auto-generated summary pages by year/month"
           git push
