@@ -72,9 +72,10 @@ jobs:
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
 
-            # 파일 내에서 각 항목을 읽고 테이블에 넣기
+            # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
+              # 비어있는 TITLE이나 SUMMARY, "Title", "---"을 제외
+              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" ]] && continue
 
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
