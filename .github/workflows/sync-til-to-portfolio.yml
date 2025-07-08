@@ -299,18 +299,9 @@ jobs:
             echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
             echo "|------|------|----------|" >> "$mdx"
 
-            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
+            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY_TEXT; do
               TITLE="${FNAME//-/ }"
-              MD_FILE_PATH="$TAGS_SRC/$FNAME.md"
-
-              if [[ -f "$MD_FILE_PATH" ]]; then
-                # 표에서 summary(두 번째 셀) 추출
-                SUMMARY_TEXT=$(awk -F'|' 'NR>3 && $3 != "" {gsub(/^ +| +$/,"",$3); print $3; exit}' "$MD_FILE_PATH")
-                [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="요약 없음"
-              else
-                SUMMARY_TEXT="요약 없음"
-              fi
-
+              [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="요약 없음"
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
               echo "| $TITLE | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
