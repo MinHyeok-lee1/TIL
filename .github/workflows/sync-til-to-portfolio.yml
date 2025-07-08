@@ -173,6 +173,7 @@ jobs:
 
             # Include LabelIcons import at the beginning of the file if not already added
             echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$SUMMARY_FILE"
+            echo "" >> "$SUMMARY_FILE"
             echo "<LabelIcons />" >> "$SUMMARY_FILE"
 
             # Append a new month table if it doesn't exist already
