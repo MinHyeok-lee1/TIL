@@ -189,7 +189,6 @@ jobs:
 
             # Prepare the filenames array for the current month and year
             FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md"))
-            ADDED_FILES=()  # Array to keep track of added files
             ADDED_GITHUB_LINKS=()  # Array to keep track of added GitHub links
 
             # Loop through each file and append to the table only once per file
@@ -213,7 +212,6 @@ jobs:
               if [[ ! " ${ADDED_GITHUB_LINKS[@]} " =~ " ${GITHUB_PATH} " ]]; then
                 # Add table entry for each file with the summary in the first column
                 echo "| $summary | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
-                ADDED_FILES+=("$FNAME")  # Mark the file as added
                 ADDED_GITHUB_LINKS+=("$GITHUB_PATH")  # Mark the GitHub link as added
               fi
             done
