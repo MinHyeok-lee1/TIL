@@ -64,7 +64,9 @@ jobs:
           for FILE in "$TAGS_SRC"/*.md; do
             ORG_TAG_NAME=$(basename "$FILE" .md)
             SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
-            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"
+            
+            # 기존 파일에서 .mdx 파일은 계속 생성, 새로 생성하는 부분만 .md로 수정
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # 기존 .mdx 파일 생성은 유지
 
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
@@ -74,7 +76,9 @@ jobs:
 
             # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              # 비어있는 TITLE이나 SUMMARY, "Title", "---", "Summary"을 제외
+              TITLE=$(echo "$TITLE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+              SUMMARY=$(echo "$SUMMARY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
               if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
                 continue
               fi
@@ -87,7 +91,6 @@ jobs:
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
               # 테이블에 제목, 요약, 바로가기 추가
@@ -268,20 +271,24 @@ jobs:
 
           for FILE in "$TAGS_DIR"/*.md; do
             safe_tag=$(basename "$FILE" .md)
-            mdx="$TAGS_DIR/$safe_tag.mdx"
             safe_tag_path="../../../src/components/LabelIcons"
 
-            echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
-            echo "" >> "$mdx"
-            echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
-            echo "" >> "$mdx"
-            echo "<LabelIcons />" >> "$mdx"
-            echo "" >> "$mdx"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
-            echo "|------|------|----------|" >> "$mdx"
+            # 기존 .mdx 파일은 생성, 새로 생성하는 부분만 .md로 수정
+            MDX_FILE="$TAGS_DIR/$safe_tag.mdx"  # 기존 .mdx 파일 생성은 유지
+
+            echo "import LabelIcons from \"$safe_tag_path\";" > "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "# 🏷️ $safe_tag TIL 모음" >> "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "<LabelIcons />" >> "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+            echo "|------|------|----------|" >> "$MDX_FILE"
 
             tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              # 비어있는 TITLE이나 SUMMARY, "Title", "---", "Summary"을 제외
+              TITLE=$(echo "$TITLE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+              SUMMARY=$(echo "$SUMMARY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
               if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
                 continue
               fi
@@ -293,10 +300,9 @@ jobs:
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
-              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
+              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
             done
           done
       - name: Commit and Push
