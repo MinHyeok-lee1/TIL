@@ -300,8 +300,8 @@ jobs:
             echo "|------|----------|" >> "$mdx"
             
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
-              TITLE="${FNAME//-/ }"
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
+                TITLE=$(echo "${FNAME//-/ }" | sed 's/^[0-9]* //')  # 숫자 제거
+                echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
             done
             rm "$LIST"
           done
