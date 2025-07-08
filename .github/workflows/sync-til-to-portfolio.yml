@@ -2,7 +2,7 @@ name: 🔄 Sync TIL to Portfolio
 
 on:
   workflow_run:
-    workflows: ["🏷️ Generate Tag Pages from TIL"]
+    workflows: ["📝 Generate Summary Pages from TIL"]
     types:
       - completed
   workflow_dispatch:
