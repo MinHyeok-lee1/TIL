@@ -185,10 +185,11 @@ jobs:
               echo "|---------|------|" >> "$SUMMARY_FILE"
             fi
 
-            # Append the summary entry for the current file
-            echo "| \"$summary\" | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$SUMMARY_FILE"
-
-            # Debugging: Ensure the summary is written to the file
+            for FNAME in "${FILES[@]}"; do
+              DAY=$(echo "$FNAME" | cut -d'-' -f1)
+              TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+              echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$SUMMARY_FILE"
+            done
             echo "Written summary for file $FILE"
           done
 
