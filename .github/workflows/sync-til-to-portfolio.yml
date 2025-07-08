@@ -185,8 +185,8 @@ jobs:
             echo "" >> "$SUMMARY_FILE"
             echo "## $MONTH월" >> "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
-            echo "| 요약 |  바로가기 |" >> "$SUMMARY_FILE"
-            echo "|---------|-------------------|" >> "$SUMMARY_FILE"
+            echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
+            echo "|---------|----------|" >> "$SUMMARY_FILE"
           fi
 
           # 중복 제거 후 정렬하여 테이블에 요약 및 링크 추가
@@ -199,6 +199,7 @@ jobs:
           rm "$LIST"
 
           shopt -u nullglob
+
       - name: Create all _meta.json and index.mdx files
         run: |
           BASE="portfolio-repo/pages/til"
