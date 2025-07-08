@@ -45,11 +45,11 @@ jobs:
                       # 날짜가 없는 경우 skip하거나 기본값 처리
                       if date:
                           try:
-                              # If date is a datetime object, convert it to string
+                              # Ensure date is a string (and in YYYY-MM-DD format)
                               if isinstance(date, datetime):
                                   date = date.strftime("%Y-%m-%d")
-                              # If date is a string and in the correct format
-                              elif isinstance(date, str) and len(date.split("-")) == 3:
+                              elif isinstance(date, str):
+                                  # Ensure the date string is in the format YYYY-MM-DD
                                   year, month, _ = date.split("-")
                               else:
                                   print(f"⚠️ Invalid date format in {path}, skipping.")

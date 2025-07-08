@@ -1,6 +1,6 @@
 ---
 title: "GitHub Template 정리"
-date: 2025-07-03
+date: "2025-07-03"
 tags: ["github", "template"]
 summary: "GitHub의 다양한 템플릿 기능(issue, PR, workflow 등)에 대한 정리"
 ---

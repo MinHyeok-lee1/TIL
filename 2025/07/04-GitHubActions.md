@@ -1,6 +1,6 @@
 ---
 title: "GitHub Actions 정리"
-date: 2025-07-04
+date: "2025-07-04"
 tags: ["github", "CI/CD"]
 summary: "GitHub Actions의 개념과 왜 사용하는 지에 대한 정리"
 ---
