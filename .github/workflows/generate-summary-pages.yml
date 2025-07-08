@@ -22,6 +22,7 @@ jobs:
           python3 <<EOF
           import os, yaml
           from pathlib import Path
+          from datetime import datetime
 
           REPO_URL = "https://github.com/MinHyeok-lee1/TIL/blob/main/"
           root_dir = Path(".")
@@ -44,7 +45,9 @@ jobs:
                       # 날짜가 없는 경우 skip하거나 기본값 처리
                       if date:
                           try:
-                              # Ensure date is in the correct format YYYY-MM-DD
+                              # If date is a datetime object, convert it to string
+                              if isinstance(date, datetime):
+                                  date = date.strftime("%Y-%m-%d")
                               year, month, _ = date.split("-")
                               relpath = path.relative_to(root_dir).as_posix()
 
