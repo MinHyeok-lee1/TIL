@@ -169,8 +169,8 @@ jobs:
             echo "$summary|$NEXTRA_LINK|$GITHUB_LINK" >> "$LIST"
           done
 
-          # 생성된 요약 파일 저장 (파일명: YEAR-summaries.mdx)
-          SUMMARY_FILE="$DEST_BASE/$YEAR-summaries.mdx"
+          # 생성된 요약 파일 저장 (파일명: 2025-summaries.mdx)
+          SUMMARY_FILE="$DEST_BASE/2025-summaries.mdx"
           mkdir -p "$(dirname "$SUMMARY_FILE")"
 
           # LabelIcons 컴포넌트 임포트가 없으면 추가
@@ -185,8 +185,8 @@ jobs:
             echo "" >> "$SUMMARY_FILE"
             echo "## $MONTH월" >> "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
-            echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
-            echo "|---------|----------|" >> "$SUMMARY_FILE"
+            echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
+            echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
           fi
 
           # 중복 제거 후 정렬하여 테이블에 요약 및 링크 추가
