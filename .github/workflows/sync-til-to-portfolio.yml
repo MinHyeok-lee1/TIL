@@ -41,6 +41,7 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
+          # .md 파일을 .mdx로만 변환하기 위해서, find에서 .md만 찾고 처리
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
@@ -72,7 +73,7 @@ jobs:
             SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
             
             # .mdx 파일을 만들지 않고, * 대신 다른 mdx 파일만 생성
-            MDX_FILE="$TAGS_DIR/$SAFE_TAG.md"  # .md로만 저장
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # .md로만 저장
 
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
