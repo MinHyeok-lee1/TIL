@@ -75,7 +75,7 @@ jobs:
             # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
               # 비어있는 TITLE이나 SUMMARY, "Title", "---", "Summary"을 제외
-              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" ]]; then
+              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
                 continue
               fi
 
@@ -282,7 +282,7 @@ jobs:
 
             tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
               # 비어있는 TITLE이나 SUMMARY, "Title", "---", "Summary"을 제외
-              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" ]]; then
+              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
                 continue
               fi
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
