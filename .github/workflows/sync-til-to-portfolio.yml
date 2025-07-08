@@ -157,6 +157,9 @@ jobs:
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
 
+            # Debugging: Check if year and month are being parsed correctly
+            echo "Processing file: $FILE"
+
             [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
             [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
 
@@ -165,6 +168,9 @@ jobs:
             summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
             title=$(echo "$content" | sed -n '/^title:/p' | sed 's/title: //')
 
+            # Debugging: Check if summary is being extracted correctly
+            echo "Summary: $summary"
+
             # Create the summaries file for the month
             MONTH_FILE="$DEST_BASE/$YEAR/$MONTH-summaries.mdx"
             mkdir -p "$(dirname "$MONTH_FILE")"
@@ -172,6 +178,9 @@ jobs:
             echo "| Summary | Link |" >> "$MONTH_FILE"
             echo "|---------|------|" >> "$MONTH_FILE"
             echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) |" >> "$MONTH_FILE"
+
+            # Debugging: Ensure the summary is written to the file
+            echo "Written summary for file $FILE"
           done
 
       - name: Create all _meta.json and index.mdx files
