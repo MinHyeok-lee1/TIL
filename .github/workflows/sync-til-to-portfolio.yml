@@ -273,42 +273,36 @@ jobs:
             FNAME=$(basename "$REL_PATH" .mdx)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
-
-            for tag in "${tagarr[@]}"; do
-              safe_tag=$(to_safe_tag "$tag")
-              [ -z "$safe_tag" ] && continue
-              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
-            done
           done
 
-          # 두 번째 루프
-          shopt -s nullglob
-          for LIST in "$TAGS_DIR"/*.list; do
-            safe_tag=$(basename "$LIST" .list)
+          for FILE in "$TAGS_DIR"/*.md; do
+            safe_tag=$(basename "$FILE" .md)
             mdx="$TAGS_DIR/$safe_tag.mdx"
             safe_tag_path="../../../src/components/LabelIcons"
-            
+
             echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
             echo "" >> "$mdx"
             echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
             echo "" >> "$mdx"
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
-
-            # 통합 테이블 헤더
             echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
             echo "|------|------|----------|" >> "$mdx"
 
-            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK SUMMARY_TEXT; do
-              TITLE="${FNAME//-/ }"
-              [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="요약 없음"
+            tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
+              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
+              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n ')
+              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
+              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+              SLUG=$(basename "$GITHUB_LINK" .md)
+              Y=$(echo "$DATE" | cut -d'-' -f1)
+              M=$(echo "$DATE" | cut -d'-' -f2)
+              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+              [[ -z "$LINK_TEXT" || -z "$GITHUB_LINK" ]] && continue
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
-              echo "| $TITLE | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
+              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
-            rm "$LIST"
           done
-          shopt -u nullglob
-
       - name: Commit and Push
         run: |
           cd portfolio-repo
