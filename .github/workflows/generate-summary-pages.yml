@@ -27,8 +27,9 @@ jobs:
           root_dir = Path(".")
           summary_map = {}
 
+          # 파일 순회시 'tags/' 폴더를 제외하도록 조건 추가
           for path in root_dir.rglob("*.md"):
-              if "summary/" in str(path):  # summary 폴더 제외
+              if "tags/" in str(path):  # tags 폴더 제외
                   continue
 
               try:
@@ -37,14 +38,17 @@ jobs:
                   if len(parts) >= 3:
                       meta = yaml.safe_load(parts[1]) or {}
                       title = meta.get("title", path.name)
-                      summary = meta.get("summary", "")
+                      summary = meta.get("summary", "")  # summary를 제대로 가져옴
+                      date = meta.get("date", "")
                       relpath = path.relative_to(root_dir).as_posix()
                       link = f"{REPO_URL}{relpath}"
 
-                      summary_map[title] = {
-                          "summary": summary,
-                          "link": link
-                      }
+                      if summary:
+                          summary_map[title] = {
+                              "summary": summary,
+                              "link": link,
+                              "date": date
+                          }
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
@@ -53,7 +57,7 @@ jobs:
           # Create a summary page for all entries
           content = "# 📝 Summary Pages\n\n| Title | Summary | Link |\n|-------|---------|------|\n"
           for title, details in summary_map.items():
-              content += f"| [{title}]({details['link']}) | {details['summary']} | {details['link']} |\n"
+              content += f"| [{title}]({details['link']}) | {details['summary']} | {details['date']} |\n"
 
           with open("summaries/index.md", "w", encoding="utf-8") as f:
               f.write(content)
