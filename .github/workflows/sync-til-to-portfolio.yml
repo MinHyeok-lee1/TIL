@@ -189,7 +189,7 @@ jobs:
 
             # Prepare the filenames array for the current month and year
             FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md"))
-            ADDED_FILES=()  # Array to keep track of added files
+            ADDED_FILES=()  # Move the initialization of this array outside of the inner loop
 
             # Loop through each file and append to the table only once per file
             for FILE in "${FILES[@]}"; do
