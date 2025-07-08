@@ -79,12 +79,21 @@ jobs:
               echo "|------|----------|" >> "$MDX_FILE"
             fi
 
-            # 본문 처리
-            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE _ _; do
+            # summary 테이블 추가 (제목과 바로가기 사이에 요약 추가)
+            echo "" >> "$MDX_FILE"
+            echo "## 요약" >> "$MDX_FILE"
+            echo "" >> "$MDX_FILE"
+            echo "| 제목 | 요약 |" >> "$MDX_FILE"
+            echo "|------|------|" >> "$MDX_FILE"
+            
+            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
               # 제목, 날짜 값이 올바르게 추출되었는지 확인
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
-              # 링크 파싱: Title에서 링크 텍스트와 GitHub 링크 추출
+              # 요약 내용 추출 (summary)
+              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n')
+
+              # 제목, 링크, GitHub 링크, Nextra 링크 파싱
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
 
@@ -95,6 +104,9 @@ jobs:
 
               # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+
+              # summary 테이블 추가
+              echo "| $LINK_TEXT | $SUMMARY_TEXT |" >> "$MDX_FILE"
 
               # index.mdx 파일은 요약을 제외하고 출력
               if [[ "$SAFE_TAG" == "index" ]]; then
@@ -282,6 +294,7 @@ jobs:
             done
           done
 
+          # 두 번째 루프
           shopt -s nullglob
           for LIST in "$TAGS_DIR"/*.list; do
             safe_tag=$(basename "$LIST" .list)
@@ -294,13 +307,27 @@ jobs:
             echo "" >> "$mdx"
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
-            
+
             # 요약을 제외하고 '제목'과 '바로가기'만 출력
             echo "| 제목 | 바로가기 |" >> "$mdx"
             echo "|------|----------|" >> "$mdx"
-            
+
+            # summary 테이블 추가 (제목과 바로가기 사이에 요약 추가)
+            echo "" >> "$mdx"
+            echo "## 요약" >> "$mdx"
+            echo "" >> "$mdx"
+            echo "| 제목 | 요약 |" >> "$mdx"
+            echo "|------|------|" >> "$mdx"
+
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
               TITLE="${FNAME//-/ }"
+
+              # 요약 내용을 추가할 부분을 생성 (필요한 데이터로 변경)
+              SUMMARY_TEXT="여기에 요약 내용 추가"  # 이 부분은 실제 요약을 추출하거나 추가하는 방식으로 수정 필요
+
+              # summary 내용 추가
+              echo "| $TITLE | $SUMMARY_TEXT |" >> "$mdx"
+
               echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
             done
             rm "$LIST"
