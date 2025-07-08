@@ -86,7 +86,7 @@ jobs:
             echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
             echo "|------|------|----------|" >> "$MDX_FILE"
 
-            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
+            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n')
@@ -301,20 +301,17 @@ jobs:
 
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
               TITLE="${FNAME//-/ }"
-
-              # 실제 MD 파일 경로 (수정 필요: 위치 정확히 반영해야 함)
               MD_FILE_PATH="$TAGS_SRC/$FNAME.md"
 
               if [[ -f "$MD_FILE_PATH" ]]; then
-                # summary 값 추출
-                SUMMARY_TEXT=$(awk '/^summary:/ { sub(/^summary:[ ]*/, ""); print; exit }' "$MD_FILE_PATH")
+                # 표에서 summary(두 번째 셀) 추출
+                SUMMARY_TEXT=$(awk -F'|' 'NR>3 && $3 != "" {gsub(/^ +| +$/,"",$3); print $3; exit}' "$MD_FILE_PATH")
                 [[ -z "$SUMMARY_TEXT" ]] && SUMMARY_TEXT="요약 없음"
               else
                 SUMMARY_TEXT="요약 없음"
               fi
 
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
-
               echo "| $TITLE | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
             rm "$LIST"
