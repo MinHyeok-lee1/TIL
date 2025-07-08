@@ -278,6 +278,13 @@ jobs:
 
           for FILE in "$TAGS_DIR"/*.md; do
             safe_tag=$(basename "$FILE" .md)
+            
+            # Skip files with invalid tag names or special characters like '*', '?', etc.
+            if [[ "$safe_tag" =~ [^a-z0-9_-] || "$safe_tag" == "*" ]]; then
+              echo "Skipping invalid tag file with special characters: $FILE"
+              continue  # Skip files with invalid characters or `*`
+            fi
+
             safe_tag_path="../../../src/components/LabelIcons"
 
             # 기존 .mdx 파일은 생성, 새로 생성하는 부분만 .md로 수정
@@ -312,6 +319,7 @@ jobs:
               echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
             done
           done
+
       - name: Commit and Push
         run: |
           cd portfolio-repo
