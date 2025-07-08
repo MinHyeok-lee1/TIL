@@ -1,0 +1,69 @@
+name: 📝 Generate Summary Pages from TIL
+
+on:
+  push:
+    branches: [main]
+    paths: ["**/*.md"]
+  workflow_dispatch:
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Parse TIL Summaries and Generate Pages
+        run: |
+          python3 <<EOF
+          import os, yaml
+          from pathlib import Path
+
+          REPO_URL = "https://github.com/MinHyeok-lee1/TIL/blob/main/"
+          root_dir = Path(".")
+          summary_map = {}
+
+          for path in root_dir.rglob("*.md"):
+              if "summary/" in str(path):  # summary 폴더 제외
+                  continue
+
+              try:
+                  content = path.read_text(encoding="utf-8")
+                  parts = content.split("---")
+                  if len(parts) >= 3:
+                      meta = yaml.safe_load(parts[1]) or {}
+                      title = meta.get("title", path.name)
+                      summary = meta.get("summary", "")
+                      relpath = path.relative_to(root_dir).as_posix()
+                      link = f"{REPO_URL}{relpath}"
+
+                      summary_map[title] = {
+                          "summary": summary,
+                          "link": link
+                      }
+              except Exception as e:
+                  print(f"⚠️ Failed to parse {path}: {e}")
+
+          os.makedirs("summaries", exist_ok=True)
+
+          # Create a summary page for all entries
+          content = "# 📝 Summary Pages\n\n| Title | Summary | Link |\n|-------|---------|------|\n"
+          for title, details in summary_map.items():
+              content += f"| [{title}]({details['link']}) | {details['summary']} | {details['link']} |\n"
+
+          with open("summaries/index.md", "w", encoding="utf-8") as f:
+              f.write(content)
+
+          EOF
+
+      - name: Commit and Push if Changed
+        run: |
+          git config user.name "MinHyeok-lee1"
+          git config user.email "minhyeok.lee1@gmail.com"
+          git add summaries
+          git diff --cached --quiet || git commit -m "📝 update: auto-generated summary pages"
+          git push
