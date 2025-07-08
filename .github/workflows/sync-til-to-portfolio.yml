@@ -212,7 +212,7 @@ jobs:
                 [ "$FNAME" = "index" ] && continue
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                MONTH_META_ITEMS+=("\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"")
+                MONTH_META_ITEMS+=("\"$FNAME\": \"${DAY}-${TITLE_CLEAN}\"")
                 FILES+=("$FNAME")
               done
               {
@@ -236,7 +236,7 @@ jobs:
               for FNAME in "${FILES[@]}"; do
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                echo "| ${DAY}일 ${TITLE_CLEAN} | [Nextra](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
+                echo "| ${TITLE_CLEAN} | [Nextra](/til/til-$YEAR/til-$MONTH_NUM/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH_NUM/$FNAME.md) |" >> "$MONTH_DIR/index.mdx"
               done
             done
           done
