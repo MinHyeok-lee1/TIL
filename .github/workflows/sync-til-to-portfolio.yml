@@ -179,6 +179,8 @@ jobs:
           if ! grep -q 'import LabelIcons' "$SUMMARY_FILE"; then
             echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
+            echo "# 2025 Summaries" >> "$SUMMARY_FILE"
+            echo "2025년의 월 별 Summaries 기록입니다." >> "$SUMMARY_FILE"
             echo "<LabelIcons />" >> "$SUMMARY_FILE"
           fi
 
