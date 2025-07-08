@@ -68,8 +68,10 @@ jobs:
               os.makedirs(year_dir, exist_ok=True)
 
               for month, entries in months.items():
-                  # Instead of creating a folder, create a summary file directly
+                  # Create a summary file for the month directly (no month folder)
                   month_summary_path = os.path.join(year_dir, f"{month}-summaries.md")
+
+                  print(f"Creating {month_summary_path}")  # Debug message
 
                   # Create a summary page for the month in the form of a .md file
                   content = f"# 📝 Summary Pages for {month}/{year}\n\n| Title | Summary | Date |\n|-------|---------|------|\n"
