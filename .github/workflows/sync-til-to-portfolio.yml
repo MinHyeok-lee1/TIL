@@ -183,7 +183,7 @@ jobs:
               echo "" >> "$SUMMARY_FILE"
               echo "## $MONTH월" >> "$SUMMARY_FILE"
               echo "" >> "$SUMMARY_FILE"
-              echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
+              echo "| 제목 | 바로가기 |" >> "$SUMMARY_FILE"
               echo "|---------|------|" >> "$SUMMARY_FILE"
             fi
 
@@ -203,7 +203,6 @@ jobs:
               echo "| $TITLE_CLEAN | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
             done
 
-            # Debugging: Ensure the summary is written to the file
             echo "Written summary for file $FILE"
           done
 
