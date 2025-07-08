@@ -48,20 +48,22 @@ jobs:
                               # If date is a datetime object, convert it to string
                               if isinstance(date, datetime):
                                   date = date.strftime("%Y-%m-%d")
-                              # If it's already a string, ensure it's in the right format
-                              if isinstance(date, str):
+                              # If date is a string and in the correct format
+                              elif isinstance(date, str) and len(date.split("-")) == 3:
                                   year, month, _ = date.split("-")
-                                  relpath = path.relative_to(root_dir).as_posix()
-
-                                  # 요약 페이지 생성에 필요한 데이터 저장
-                                  summary_map.setdefault(year, {}).setdefault(month, []).append({
-                                      "title": title,
-                                      "summary": summary,
-                                      "date": date,
-                                      "link": f"{REPO_URL}{relpath}"  # 링크 추가
-                                  })
                               else:
                                   print(f"⚠️ Invalid date format in {path}, skipping.")
+                                  continue
+
+                              relpath = path.relative_to(root_dir).as_posix()
+
+                              # 요약 페이지 생성에 필요한 데이터 저장
+                              summary_map.setdefault(year, {}).setdefault(month, []).append({
+                                  "title": title,
+                                  "summary": summary,
+                                  "date": date,
+                                  "link": f"{REPO_URL}{relpath}"  # 링크 추가
+                              })
                           except ValueError:
                               print(f"⚠️ Invalid date format in {path}, skipping.")
               except Exception as e:
