@@ -1,9 +1,10 @@
 name: 📝 Generate Summary Pages from TIL
 
 on:
-  push:
-    branches: [main]
-    paths: ["**/*.md"]
+  workflow_run:
+    workflows: ["🏷️ Generate Tag Pages from TIL"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
