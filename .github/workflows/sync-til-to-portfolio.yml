@@ -41,7 +41,6 @@ jobs:
 
           mkdir -p "$DEST_BASE"
 
-          # .md 파일을 .mdx로만 변환하기 위해서, find에서 .md만 찾고 처리
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
@@ -54,7 +53,7 @@ jobs:
             mkdir -p "$DEST_BASE/til-$YEAR"
             DEST_DIR="$DEST_BASE/til-$YEAR/til-$MONTH"
             mkdir -p "$DEST_DIR"
-            cp "$FILE" "$DEST_DIR/$FNAME.mdx"  # .mdx 파일만 복사 (원래대로 유지)
+            cp "$FILE" "$DEST_DIR/$FNAME.mdx"
           done
 
           TAGS_SRC="$SRC_BASE/tags"
@@ -63,45 +62,46 @@ jobs:
 
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            # Skip files with invalid tag names or special characters like '*'
-            if [[ "$(basename "$FILE" .md)" =~ [^a-z0-9_-] ]]; then
-              echo "Skipping invalid tag file with special characters: $FILE"
-              continue  # Skip files with invalid characters
-            fi
-
             ORG_TAG_NAME=$(basename "$FILE" .md)
-            SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
-            
-            # Ensure only properly structured files get converted to .mdx
-            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # .md로만 저장
+            SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"
 
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
-            echo "|------|------|----------|" >> "$MDX_FILE"
 
-            # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
-            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              TITLE=$(echo "$TITLE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-              SUMMARY=$(echo "$SUMMARY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            # index.mdx 파일의 경우 요약을 제외하고 생성
+            if [[ "$SAFE_TAG" == "index" ]]; then
+              echo "| 태그 | 바로가기 |" >> "$MDX_FILE"
+              echo "|------|----------|" >> "$MDX_FILE"
+            else
+              echo "| 제목 | 바로가기 |" >> "$MDX_FILE"
+              echo "|------|----------|" >> "$MDX_FILE"
+            fi
 
-              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
-                continue
-              fi
+            # 본문 처리
+            tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE _ _; do
+              # 제목, 날짜 값이 올바르게 추출되었는지 확인
+              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
-              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
-              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
+              # 링크 파싱: Title에서 링크 텍스트와 GitHub 링크 추출
+              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+
+              # 날짜 포맷: YYYY-MM-DD에서 Y와 M을 추출
               SLUG=$(basename "$GITHUB_LINK" .md)
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
+
+              # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
-
-              # 테이블에 제목, 요약, 바로가기 추가
-              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
+              # index.mdx 파일은 요약을 제외하고 출력
+              if [[ "$SAFE_TAG" == "index" ]]; then
+                echo "| $LINK_TEXT | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+              else
+                echo "| $LINK_TEXT | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
+              fi
             done
           done
           shopt -u nullglob
@@ -274,51 +274,38 @@ jobs:
             FNAME=$(basename "$REL_PATH" .mdx)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
-          done
 
-          for FILE in "$TAGS_DIR"/*.md; do
-            safe_tag=$(basename "$FILE" .md)
-            
-            # Skip files with invalid tag names or special characters like '*', '?', etc.
-            if [[ "$safe_tag" =~ [^a-z0-9_-] || "$safe_tag" == "*" ]]; then
-              echo "Skipping invalid tag file with special characters: $FILE"
-              continue  # Skip files with invalid characters or `*`
-            fi
-
-            safe_tag_path="../../../src/components/LabelIcons"
-
-            # 기존 .mdx 파일은 생성, 새로 생성하는 부분만 .md로 수정
-            MDX_FILE="$TAGS_DIR/$safe_tag.mdx"  # 기존 .mdx 파일 생성은 유지
-
-            echo "import LabelIcons from \"$safe_tag_path\";" > "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "# 🏷️ $safe_tag TIL 모음" >> "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "<LabelIcons />" >> "$MDX_FILE"
-            echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
-            echo "|------|------|----------|" >> "$MDX_FILE"
-
-            tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              TITLE=$(echo "$TITLE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-              SUMMARY=$(echo "$SUMMARY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-
-              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" || "$SUMMARY" == "Summary" || "$SUMMARY" == "---------" ]]; then
-                continue
-              fi
-              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
-              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
-              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-              SLUG=$(basename "$GITHUB_LINK" .md)
-              Y=$(echo "$DATE" | cut -d'-' -f1)
-              M=$(echo "$DATE" | cut -d'-' -f2)
-              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-
-              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
-
-              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
+            for tag in "${tagarr[@]}"; do
+              safe_tag=$(to_safe_tag "$tag")
+              [ -z "$safe_tag" ] && continue
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
+
+          shopt -s nullglob
+          for LIST in "$TAGS_DIR"/*.list; do
+            safe_tag=$(basename "$LIST" .list)
+            mdx="$TAGS_DIR/$safe_tag.mdx"
+            safe_tag_path="../../../src/components/LabelIcons"
+            
+            echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
+            echo "" >> "$mdx"
+            echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
+            echo "" >> "$mdx"
+            echo "<LabelIcons />" >> "$mdx"
+            echo "" >> "$mdx"
+            
+            # 요약을 제외하고 '제목'과 '바로가기'만 출력
+            echo "| 제목 | 바로가기 |" >> "$mdx"
+            echo "|------|----------|" >> "$mdx"
+            
+            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
+              TITLE="${FNAME//-/ }"
+              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
+            done
+            rm "$LIST"
+          done
+          shopt -u nullglob
 
       - name: Commit and Push
         run: |
