@@ -274,6 +274,12 @@ jobs:
             FNAME=$(basename "$REL_PATH" .mdx)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
+
+            for tag in "${tagarr[@]}"; do
+              safe_tag=$(to_safe_tag "$tag")
+              [ -z "$safe_tag" ] && continue
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
+            done
           done
 
           for FILE in "$TAGS_DIR"/*.md; do
@@ -295,15 +301,12 @@ jobs:
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n ')
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-              SLUG=$(basename "$GITHUB_LINK" .md)
-              Y=$(echo "$DATE" | cut -d'-' -f1)
-              M=$(echo "$DATE" | cut -d'-' -f2)
-              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
-              [[ -z "$LINK_TEXT" || -z "$GITHUB_LINK" ]] && continue
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
+
               echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
           done
+
       - name: Commit and Push
         run: |
           cd portfolio-repo
