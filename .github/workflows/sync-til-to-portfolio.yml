@@ -165,8 +165,10 @@ jobs:
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH"
 
-            # 파일 데이터를 임시 리스트에 저장
-            echo "$summary|$NEXTRA_LINK|$GITHUB_LINK" >> "$LIST"
+            # 요약이 비어있지 않으면 리스트에 저장
+            if [ -n "$summary" ]; then
+              echo "$summary|$NEXTRA_LINK|$GITHUB_LINK|$MONTH" >> "$LIST"
+            fi
           done
 
           # 생성된 요약 파일 저장 (파일명: 2025-summaries.mdx)
@@ -180,18 +182,17 @@ jobs:
             echo "<LabelIcons />" >> "$SUMMARY_FILE"
           fi
 
-          # 해당 월의 테이블이 없다면 추가
-          if ! grep -q "## $MONTH월" "$SUMMARY_FILE"; then
-            echo "" >> "$SUMMARY_FILE"
-            echo "## $MONTH월" >> "$SUMMARY_FILE"
-            echo "" >> "$SUMMARY_FILE"
-            echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
-            echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
-          fi
-
-          # 중복 제거 후 정렬하여 테이블에 요약 및 링크 추가
-          sort "$LIST" | uniq | while IFS="|" read summary NEXTRA_LINK GITHUB_LINK; do
-            # 테이블 항목 추가 (불필요한 내용 제외)
+          # 월별로 테이블 추가 (1월부터 12월까지)
+          sort "$LIST" | uniq | while IFS="|" read summary NEXTRA_LINK GITHUB_LINK MONTH; do
+            # 해당 월의 테이블이 없다면 추가
+            if ! grep -q "## $MONTH월" "$SUMMARY_FILE"; then
+              echo "" >> "$SUMMARY_FILE"
+              echo "## $MONTH월" >> "$SUMMARY_FILE"
+              echo "" >> "$SUMMARY_FILE"
+              echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
+              echo "|---------|------------------|" >> "$SUMMARY_FILE"
+            fi
+            # 테이블 항목 추가
             echo "| $summary | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$SUMMARY_FILE"
           done
 
