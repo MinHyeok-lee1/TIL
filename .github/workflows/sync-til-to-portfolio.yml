@@ -190,18 +190,25 @@ jobs:
             # Prepare the filenames array for the current month and year
             FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md"))
 
-            # Loop through each file and append to the table
+            # Loop through each file and append to the table only once per file
             for FILE in "${FILES[@]}"; do
               FNAME=$(basename "$FILE")
               DAY=$(echo "$FNAME" | cut -d'-' -f1)
               TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+
+              # Get summary for this specific file again to avoid repetition
+              content=$(cat "$FILE")
+              summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
+
+              # Remove any extra quotes that were mistakenly added
+              summary=$(echo $summary | sed 's/"//g')
 
               # Correct Nextra and GitHub links (relative path)
               NEXTRA_PATH="/til/til-$YEAR/til-$MONTH/$FNAME"
               GITHUB_PATH="https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH"
 
               # Add table entry for each file with the summary in the first column
-              echo "| \"$summary\" | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
+              echo "| $summary | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
             done
 
             # Debugging: Ensure the summary is written to the file
