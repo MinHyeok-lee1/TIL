@@ -41,8 +41,8 @@ jobs:
                       summary = meta.get("summary", "No summary available")  # 비어있는 summary 처리
                       date = meta.get("date", "")
                       
-                      # 날짜가 없는 경우 skip하거나 기본값 처리
-                      if date:
+                      # 날짜가 없으면 건너뛰고, 날짜 형식이 올바른지 확인
+                      if date and len(date.split("-")) == 3:
                           year, month, _ = date.split("-")
                           relpath = path.relative_to(root_dir).as_posix()
 
