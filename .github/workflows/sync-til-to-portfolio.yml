@@ -185,8 +185,8 @@ jobs:
             echo "" >> "$SUMMARY_FILE"
             echo "## $MONTH월" >> "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
-            echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
-            echo "|---------|------|" >> "$SUMMARY_FILE"
+            echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
+            echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
           fi
 
           # Sort and remove duplicates, then format the table with Nextra and GitHub links
