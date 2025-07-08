@@ -63,22 +63,16 @@ jobs:
 
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
-            # .mdx 파일을 만들지 않고, * 대신 다른 mdx 파일만 생성
-            if [[ "$(basename "$FILE" .md)" == "*" ]]; then
-              echo "Skipping file with name *: $FILE"
-              continue  # *라는 이름의 mdx 파일은 건너뜁니다.
-            fi
-
-            # Ensure only properly structured files get converted to .mdx
-            if [[ ! "$(basename "$FILE" .md)" =~ ^[a-z0-9_-]+$ ]]; then
-              echo "Skipping invalid tag file: $FILE"
-              continue  # Skip invalid files (non-safe tag names)
+            # Skip files with invalid tag names or special characters like '*'
+            if [[ "$(basename "$FILE" .md)" =~ [^a-z0-9_-] ]]; then
+              echo "Skipping invalid tag file with special characters: $FILE"
+              continue  # Skip files with invalid characters
             fi
 
             ORG_TAG_NAME=$(basename "$FILE" .md)
             SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
             
-            # .mdx 파일을 만들지 않고, * 대신 다른 mdx 파일만 생성
+            # Ensure only properly structured files get converted to .mdx
             MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # .md로만 저장
 
             # 헤더 생성
