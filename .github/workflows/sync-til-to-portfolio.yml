@@ -172,9 +172,11 @@ jobs:
             mkdir -p "$(dirname "$SUMMARY_FILE")"
 
             # Include LabelIcons import at the beginning of the file if not already added
-            echo 'import LabelIcons from "../../../src/components/LabelIcons";' >> "$SUMMARY_FILE"
-            echo "" >> "$SUMMARY_FILE"
-            echo "<LabelIcons />" >> "$SUMMARY_FILE"
+            if ! grep -q 'import LabelIcons' "$SUMMARY_FILE"; then
+              echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$SUMMARY_FILE"
+              echo "" >> "$SUMMARY_FILE"
+              echo "<LabelIcons />" >> "$SUMMARY_FILE"
+            fi
 
             # Append a new month table if it doesn't exist already
             if ! grep -q "## $MONTH월" "$SUMMARY_FILE"; then
@@ -185,17 +187,25 @@ jobs:
               echo "|---------|------|" >> "$SUMMARY_FILE"
             fi
 
-            # Prepare the filenames array
-            FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md" | sort -u))
+            # Prepare the filenames array for the current month and year
+            FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md"))
 
             # Loop through each file and append to the table
             for FILE in "${FILES[@]}"; do
-              DAY=$(echo "$FILE" | cut -d'-' -f1)
-              TITLE_CLEAN=$(echo "$FILE" | cut -d'-' -f2- | sed 's/-/ /g')
-              echo "| $TITLE_CLEAN | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$SUMMARY_FILE"
+              FNAME=$(basename "$FILE")
+              DAY=$(echo "$FNAME" | cut -d'-' -f1)
+              TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
+
+              # Correct Nextra and GitHub links (relative path)
+              NEXTRA_PATH="/til/til-$YEAR/til-$MONTH/$FNAME"
+              GITHUB_PATH="https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH"
+
+              # Add table entry for each file with the summary in the first column
+              echo "| \"$summary\" | [Nextra]($NEXTRA_PATH) \| [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
             done
 
-            echo "Written summary for file $FILE"
+            # Debugging: Ensure the summary is written to the file
+            echo "Written summary for file $SUMMARY_FILE"
           done
 
       - name: Create all _meta.json and index.mdx files
