@@ -98,7 +98,7 @@ jobs:
               M=$(echo "$DATE" | cut -d'-' -f2)
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
+              # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기 (escaping 처리)
               LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
               echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
