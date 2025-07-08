@@ -83,37 +83,24 @@ jobs:
             echo "" >> "$MDX_FILE"
             echo "## 요약" >> "$MDX_FILE"
             echo "" >> "$MDX_FILE"
-            echo "| 제목 | 요약 |" >> "$MDX_FILE"
-            echo "|------|------|" >> "$MDX_FILE"
-            
+            echo "| 제목 | 요약 | 바로가기 |" >> "$MDX_FILE"
+            echo "|------|------|----------|" >> "$MDX_FILE"
+
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE DATE SUMMARY _; do
-              # 제목, 날짜 값이 올바르게 추출되었는지 확인
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
 
-              # 요약 내용 추출 (summary)
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n')
-
-              # 제목, 링크, GitHub 링크, Nextra 링크 파싱
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
               GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
 
-              # 날짜 포맷: YYYY-MM-DD에서 Y와 M을 추출
               SLUG=$(basename "$GITHUB_LINK" .md)
               Y=$(echo "$DATE" | cut -d'-' -f1)
               M=$(echo "$DATE" | cut -d'-' -f2)
-
-              # Nextra 링크 생성
               NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-              # summary 테이블 추가
-              echo "| $LINK_TEXT | $SUMMARY_TEXT |" >> "$MDX_FILE"
+              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
-              # index.mdx 파일은 요약을 제외하고 출력
-              if [[ "$SAFE_TAG" == "index" ]]; then
-                echo "| $LINK_TEXT | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
-              else
-                echo "| $LINK_TEXT | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$MDX_FILE"
-              fi
+              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$MDX_FILE"
             done
           done
           shopt -u nullglob
@@ -308,27 +295,17 @@ jobs:
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
 
-            # 요약을 제외하고 '제목'과 '바로가기'만 출력
-            echo "| 제목 | 바로가기 |" >> "$mdx"
-            echo "|------|----------|" >> "$mdx"
-
-            # summary 테이블 추가 (제목과 바로가기 사이에 요약 추가)
-            echo "" >> "$mdx"
-            echo "## 요약" >> "$mdx"
-            echo "" >> "$mdx"
-            echo "| 제목 | 요약 |" >> "$mdx"
-            echo "|------|------|" >> "$mdx"
+            # 통합 테이블 헤더
+            echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
+            echo "|------|------|----------|" >> "$mdx"
 
             sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
               TITLE="${FNAME//-/ }"
+              SUMMARY_TEXT="요약 없음"  # 추후 실제 summary로 대체 가능
 
-              # 요약 내용을 추가할 부분을 생성 (필요한 데이터로 변경)
-              SUMMARY_TEXT="여기에 요약 내용 추가"  # 이 부분은 실제 요약을 추출하거나 추가하는 방식으로 수정 필요
+              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
-              # summary 내용 추가
-              echo "| $TITLE | $SUMMARY_TEXT |" >> "$mdx"
-
-              echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
+              echo "| $TITLE | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
             rm "$LIST"
           done
