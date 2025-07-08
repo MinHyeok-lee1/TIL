@@ -166,7 +166,6 @@ jobs:
             # Get YAML metadata
             content=$(cat "$FILE")
             summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
-            title=$(echo "$content" | sed -n '/^title:/p' | sed 's/title: //')
 
             # Debugging: Check if summary is being extracted correctly
             echo "Summary: $summary"
