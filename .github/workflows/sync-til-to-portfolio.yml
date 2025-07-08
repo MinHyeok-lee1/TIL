@@ -241,6 +241,72 @@ jobs:
             done
           done
 
+      - name: Create tag tables (Nextra/GitHub/Summary)
+        run: |
+          set -e
+          BASE="portfolio-repo/pages/til"
+          TAGS_DIR="$BASE/tags"
+          mkdir -p "$TAGS_DIR"
+
+          to_safe_tag() {
+            echo "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//'
+          }
+
+          files=$(find "$BASE"/til-*/*/*.mdx -type f)
+          if [ -z "$files" ]; then
+            echo "No mdx files found for tags. Skipping tag table generation."
+            exit 0
+          fi
+
+          for FILE in $files; do
+            yaml=$(awk '/^---/ {i++} i==1; i==2 {exit}' "$FILE" | sed '1d;$d')
+            tag_line=$(echo "$yaml" | grep "^tags:") || true
+            [ -z "$tag_line" ] && continue
+            tags=$(echo "$tag_line" | sed 's/tags:[ ]*\[\(.*\)\]/\1/' | tr -d '"'\'' ')
+            IFS=',' read -ra tagarr <<< "$tags"
+
+            summary=$(echo "$yaml" | grep "^summary:" | sed 's/summary:[ ]*//') || true
+            [ -z "$summary" ] && summary="No summary available"
+
+            REL_PATH="${FILE#$BASE/}"
+            YEAR=$(echo "$REL_PATH" | cut -d'/' -f1 | cut -d'-' -f2)
+            MONTH=$(echo "$REL_PATH" | cut -d'/' -f2 | cut -d'-' -f2)
+            FNAME=$(basename "$REL_PATH" .mdx)
+            NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
+            GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
+
+            for tag in "${tagarr[@]}"; do
+              safe_tag=$(to_safe_tag "$tag")
+              [ -z "$safe_tag" ] && continue
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
+            done
+          done
+
+          for FILE in "$TAGS_DIR"/*.md; do
+            safe_tag=$(basename "$FILE" .md)
+            mdx="$TAGS_DIR/$safe_tag.mdx"
+            safe_tag_path="../../../src/components/LabelIcons"
+
+            echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
+            echo "" >> "$mdx"
+            echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
+            echo "" >> "$mdx"
+            echo "<LabelIcons />" >> "$mdx"
+            echo "" >> "$mdx"
+            echo "| 제목 | 요약 | 바로가기 |" >> "$mdx"
+            echo "|------|------|----------|" >> "$mdx"
+
+            tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
+              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
+              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n ')
+              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
+              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
+
+              echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
+            done
+          done
+
       - name: Commit and Push
         run: |
           cd portfolio-repo
