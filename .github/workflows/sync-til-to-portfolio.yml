@@ -63,9 +63,9 @@ jobs:
           shopt -s nullglob
           for FILE in "$TAGS_SRC"/*.md; do
             ORG_TAG_NAME=$(basename "$FILE" .md)
-            SAFE_TAG=$(echo "$ORG_TAG_NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_' | tr -s '_' | sed 's/^_//;s/_$//')
+            SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
             
-            # 기존 파일에서 .mdx 파일은 계속 생성, 새로 생성하는 부분만 .md로 수정
+            # 기존 .mdx 파일은 계속 생성, 새로 생성하는 부분만 .md로 수정
             MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # 기존 .mdx 파일 생성은 유지
 
             # 헤더 생성
