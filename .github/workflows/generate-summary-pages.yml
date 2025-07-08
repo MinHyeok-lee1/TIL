@@ -49,7 +49,7 @@ jobs:
                               if isinstance(date, datetime):
                                   date = date.strftime("%Y-%m-%d")
                               elif isinstance(date, str):
-                                  # Ensure the date string is in the format YYYY-MM-DD
+                                  # Ensure the date string is in the correct format YYYY-MM-DD
                                   year, month, _ = date.split("-")
                               else:
                                   print(f"⚠️ Invalid date format in {path}, skipping.")
@@ -61,7 +61,6 @@ jobs:
                               summary_map.setdefault(year, {}).setdefault(month, []).append({
                                   "title": title,
                                   "summary": summary,
-                                  "date": date,
                                   "link": f"{REPO_URL}{relpath}"  # 링크 추가
                               })
                           except ValueError:
@@ -83,9 +82,9 @@ jobs:
                   print(f"Creating {month_summary_path}")  # Debug message
 
                   # Create a summary page for the month in the form of a .md file
-                  content = f"# 📝 Summary Pages for {month}/{year}\n\n| Title | Summary | Date |\n|-------|---------|------|\n"
+                  content = f"# 📝 Summary Pages for {month}/{year}\n\n| Title | Summary |\n|-------|---------|\n"
                   for entry in entries:
-                      content += f"| [{entry['title']}]({entry['link']}) | {entry['summary']} | {entry['date']} |\n"
+                      content += f"| [{entry['title']}]({entry['link']}) | {entry['summary']} |\n"
 
                   # Write the month summary page as 07-summaries.md (instead of creating a folder)
                   with open(month_summary_path, "w", encoding="utf-8") as f:
