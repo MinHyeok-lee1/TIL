@@ -133,6 +133,7 @@ jobs:
           echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$TAGS_DIR/index.mdx"
           echo "" >> "$TAGS_DIR/index.mdx"
           echo "# 🏷️ 태그 모음" >> "$TAGS_DIR/index.mdx"
+          echo "바로가기를 누르시면 해당 태그 관련 TIL정리로 이동합니다." >> "$TAGS_DIR/index.mdx"
           echo "<LabelIcons />" >> "$TAGS_DIR/index.mdx"
           echo "| 태그  | 바로가기 |" >> "$TAGS_DIR/index.mdx"
           echo "|------|----------|" >> "$TAGS_DIR/index.mdx"
@@ -191,6 +192,8 @@ jobs:
             echo "" >> "$SUMMARY_FILE"
             echo "# 2025 Summaries" >> "$SUMMARY_FILE"
             echo "2025년의 월 별 Summaries 기록입니다." >> "$SUMMARY_FILE"
+            echo "" >> "$SUMMARY_FILE"
+            echo "바로가기를 누르시면 해당 TIL로 이동합니다." >> "$SUMMARY_FILE"
             echo "<LabelIcons />" >> "$SUMMARY_FILE"
           fi
 
@@ -237,25 +240,36 @@ jobs:
           echo "" >> "$BASE/index.mdx"
           echo "> 꾸준한 기록은 최고의 성장으로 이어진다." >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
-          echo "[🏷️ 태그모음](/til/tags)" >> "$BASE/index.mdx"
+          echo "아래는 TIL문서에 대한 태그, 연도별 정리, 요약 모음 등이 정리되어 있습니다." >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
-          echo "태그모음 페이지에는 TIL들에 대한 태그 정보가 정리되어 있습니다." >> "$BASE/index.mdx"
-          echo "## 📅 연도별" >> "$BASE/index.mdx"
+          echo "각 글의 링크들은 Nextra(본 웹사이트), Github(원본) TIL로 이동합니다.)" >> "$BASE/index.mdx"
+          echo "" >> "$BASE/index.mdx"
+          echo "---" >> "$BASE/index.mdx"
 
+          echo "## 🏷️ TIL 태그모음" >> "$BASE/index.mdx"
+          echo "[TIL 태그모음](/til/tags)" >> "$BASE/index.mdx"
+          echo ": TIL 문서에 대한 태그 정보가 정리되어 있습니다." >> "$BASE/index.mdx"
+
+          echo "" >> "$BASE/index.mdx"
+          echo "---" >> "$BASE/index.mdx"
+
+          echo "## 📅 연도별 TIL모음" >> "$BASE/index.mdx"
           # 연도별로 TIL 페이지 추가
           for YEAR in "${YEARS[@]}"; do
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
-            echo "${YEAR}년 TIL 페이지에는 ${YEAR}년에 기록한 TIL문서가 정리되어 있습니다." >> "$BASE/index.mdx"
+            echo ": ${YEAR}년 월별로 글을 정리한 링크가 정리되어 있습니다." >> "$BASE/index.mdx"
+            echo "" >> "$BASE/index.mdx"
           done
 
           echo "" >> "$BASE/index.mdx"
+          echo "---" >> "$BASE/index.mdx"
 
           # 2025년 TIL 요약 추가
+          echo "## 📑 요약 TIL모음" >> "$BASE/index.mdx"
           for YEAR in "${YEARS[@]}"; do
-            echo "## 📑 ${YEAR}년 TIL 요약" >> "$BASE/index.mdx"
-            echo "[${YEAR}년 TIL 요약](/til/summaries/${YEAR}-summaries)" >> "$BASE/index.mdx"
+            echo "- [${YEAR}년 TIL요약](/til/summaries/${YEAR}-summaries)" >> "$BASE/index.mdx"
+            echo ": ${YEAR}년 월별로 TIL들에 대한 요약과 바로가기 링크가 정리되어 있습니다." >> "$BASE/index.mdx"
             echo "" >> "$BASE/index.mdx"
-            echo "${YEAR}년 TIL 요약 페이지에는 ${YEAR}년에 기록한 TIL들에 대한 요약과 관련된 정보가 정리되어 있습니다." >> "$BASE/index.mdx"
           done
 
           for YEAR in "${YEARS[@]}"; do
@@ -279,6 +293,8 @@ jobs:
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "# 문서개요" >> "$YEAR_DIR/index.mdx"
             echo "${YEAR}년 TIL 기록입니다." >> "$YEAR_DIR/index.mdx"
+            echo "" >> "$SUMMARY_FILE"
+            echo "바로가기를 누르시면 월 관련 TIL 정리로 이동합니다." >> "$SUMMARY_FILE"
             echo "<LabelIcons />" >> "$YEAR_DIR/index.mdx"
             echo "" >> "$YEAR_DIR/index.mdx"
             echo "| 월 | 바로가기 |" >> "$YEAR_DIR/index.mdx"
@@ -316,6 +332,8 @@ jobs:
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "# 문서개요" >> "$MONTH_DIR/index.mdx"
               echo "${YEAR}년 ${MONTH_NUM}월 TIL 기록입니다." >> "$MONTH_DIR/index.mdx"
+              echo "" >> "$mdx"
+              echo "바로가기를 누르시면 해당 TIL로 이동합니다." >> "$TAGS_DIR/index.mdx"
               echo "<LabelIcons />" >> "$MONTH_DIR/index.mdx"
               echo "" >> "$MONTH_DIR/index.mdx"
               echo "| 제목 | 바로가기 |" >> "$MONTH_DIR/index.mdx"
@@ -378,6 +396,8 @@ jobs:
             echo "import LabelIcons from \"$safe_tag_path\";" > "$mdx"
             echo "" >> "$mdx"
             echo "# 🏷️ $safe_tag TIL 모음" >> "$mdx"
+            echo "" >> "$mdx"
+            echo "바로가기를 누르시면 해당 TIL로 이동합니다." >> "$TAGS_DIR/index.mdx"
             echo "" >> "$mdx"
             echo "<LabelIcons />" >> "$mdx"
             echo "" >> "$mdx"
