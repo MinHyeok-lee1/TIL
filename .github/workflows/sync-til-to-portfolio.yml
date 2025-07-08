@@ -212,7 +212,7 @@ jobs:
                 [ "$FNAME" = "index" ] && continue
                 DAY=$(echo "$FNAME" | cut -d'-' -f1)
                 TITLE_CLEAN=$(echo "$FNAME" | cut -d'-' -f2- | sed 's/-/ /g')
-                MONTH_META_ITEMS+=("\"$FNAME\": \"${DAY}일 ${TITLE_CLEAN}\"")
+                MONTH_META_ITEMS+=("\"$FNAME\": \"${DAY}-${TITLE_CLEAN}\"")
                 FILES+=("$FNAME")
               done
               {
