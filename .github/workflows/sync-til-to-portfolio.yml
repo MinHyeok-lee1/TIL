@@ -61,20 +61,18 @@ jobs:
           mkdir -p "$TAGS_DIR"
 
           shopt -s nullglob
-          # `*`라는 이름의 .mdx 파일만 제외하고 나머지 .mdx 파일은 처리
           for FILE in "$TAGS_SRC"/*.md; do
-            ORG_TAG_NAME=$(basename "$FILE" .md)
-            
-            # `*`라는 이름의 mdx 파일만 제외
-            if [[ "$ORG_TAG_NAME" == "*" ]]; then
+            # .mdx가 아닌 특정 이름의 mdx 파일을 만들지 않기 위한 수정
+            if [[ "$(basename "$FILE" .md)" == "*" ]]; then
               echo "Skipping file with name *: $FILE"
-              continue  # `*`라는 이름의 mdx 파일은 건너뜁니다.
+              continue  # *라는 이름의 mdx 파일은 건너뜁니다.
             fi
 
+            ORG_TAG_NAME=$(basename "$FILE" .md)
             SAFE_TAG=$(to_safe_tag "$ORG_TAG_NAME")
             
-            # `.mdx` 파일을 정상적으로 생성
-            MDX_FILE="$TAGS_DIR/$SAFE_TAG.mdx"  # .mdx 파일 생성
+            # .mdx 파일을 만들지 않고, * 대신 다른 mdx 파일만 생성
+            MDX_FILE="$TAGS_DIR/$SAFE_TAG.md"  # .md로만 저장
 
             # 헤더 생성
             echo "# 🏷️ $SAFE_TAG TIL 모음" > "$MDX_FILE"
