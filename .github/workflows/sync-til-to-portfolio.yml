@@ -160,7 +160,7 @@ jobs:
             [[ "$YEAR" =~ ^[0-9]{4}$ ]] || continue
             [[ "$MONTH" =~ ^[0-9]{2}$ ]] || continue
 
-            # Get YAML metadata
+            # Get YAML metadata (summary)
             content=$(cat "$FILE")
             summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
 
@@ -183,13 +183,14 @@ jobs:
               echo "" >> "$SUMMARY_FILE"
               echo "## $MONTH월" >> "$SUMMARY_FILE"
               echo "" >> "$SUMMARY_FILE"
-              echo "| 요약 | 바로가기 |" >> "$SUMMARY_FILE"
-              echo "|---------|------|" >> "$SUMMARY_FILE"
+              echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
+              echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
             fi
 
             # Prepare the filenames array for the current month and year
             FILES=($(find "$SRC_BASE/$YEAR/$MONTH" -type f -name "*.md"))
             ADDED_GITHUB_LINKS=()  # Array to keep track of added GitHub links
+            ADDED_SUMMARIES=()     # Array to keep track of added summaries
 
             # Loop through each file and append to the table only once per file
             for FILE in "${FILES[@]}"; do
@@ -208,10 +209,11 @@ jobs:
               NEXTRA_PATH="/til/til-$YEAR/til-$MONTH/$FNAME"
               GITHUB_PATH="https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH"
 
-              # Check if the GitHub link has already been added to avoid duplicates
-              if [[ ! " ${ADDED_GITHUB_LINKS[@]} " =~ " ${GITHUB_PATH} " ]]; then
+              # Ensure that the summary is only added once and it's not already in the list
+              if [[ ! " ${ADDED_SUMMARIES[@]} " =~ " ${summary} " ]]; then
                 # Add table entry for each file with the summary in the first column
-                echo "| $summary | [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
+                echo "| $summary | [Nextra]($NEXTRA_PATH) | [GitHub]($GITHUB_PATH) |" >> "$SUMMARY_FILE"
+                ADDED_SUMMARIES+=("$summary")  # Mark the summary as added
                 ADDED_GITHUB_LINKS+=("$GITHUB_PATH")  # Mark the GitHub link as added
               fi
             done
