@@ -174,8 +174,10 @@ jobs:
             # Create the summaries file for the month
             MONTH_FILE="$DEST_BASE/$YEAR/$MONTH-summaries.mdx"
             mkdir -p "$(dirname "$MONTH_FILE")"
+
+            # First, write the header and LabelIcons to the file
             echo "# 📝 Summary Pages for $MONTH/$YEAR" >> "$MONTH_FILE"
-            echo "<LabelIcons />" >> "$MONTH_FILE" 
+            echo "<LabelIcons />" >> "$MONTH_FILE"
             echo "| 요약 | 바로가기 |" >> "$MONTH_FILE"
             echo "|---------|------|" >> "$MONTH_FILE"
 
@@ -193,10 +195,9 @@ jobs:
 
               # Add summary and links to the table
               echo "| \"$summary\" | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$MONTH_FILE"
+              # Debugging: Ensure the summary is written to the file
+              echo "Written summaries to $MONTH_FILE"
             done
-
-            # Debugging: Ensure the summary is written to the file
-            echo "Written summaries to $MONTH_FILE"
 
       - name: Create all _meta.json and index.mdx files
         run: |
