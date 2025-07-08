@@ -44,23 +44,21 @@ jobs:
                       relpath = path.relative_to(root_dir).as_posix()
                       link = f"{REPO_URL}{relpath}"
                       for tag in tags:
-                          safe_tag = tag.replace("/", "-")  # Indent this line properly
+                          safe_tag = tag.replace("/", "-")
                           tag_map.setdefault(tag, []).append(
                               (title, date, summary, link)
                           )
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
-          # ✅ tags 디렉토리 없으면 생성
           os.makedirs("tags", exist_ok=True)
 
           for tag, entries in tag_map.items():
-              # ✅ 슬래시 포함된 태그 방어 처리
               safe_tag = tag.replace("/", "-")
-              entries.sort(key=lambda x: str(x[1]), reverse=True)
-              content = f"# 🏷️ Tag: {tag}\n\n| Title | Date | Summary |\n|-------|------|---------|\n"
+              entries.sort(key=lambda x: str(x[1]), reverse=True)  # date 기준 정렬
+              content = f"# 🏷️ Tag: {tag}\n\n| Title | Summary | Date |\n|-------|---------|------|\n"
               for title, date, summary, link in entries:
-                  content += f"| [{title}]({link}) | {date} | {summary} |\n"
+                  content += f"| [{title}]({link}) | {summary} | {date} |\n"
               with open(f"tags/{safe_tag}.md", "w", encoding="utf-8") as f:
                   f.write(content)
           EOF
