@@ -2,7 +2,7 @@ name: 🔄 Sync TIL to Portfolio
 
 on:
   workflow_run:
-    workflows: ["📝 Generate Summary Pages from TIL"]
+    workflows: ["🏷️ Generate Tag Pages from TIL"]
     types:
       - completed
   workflow_dispatch:
@@ -278,7 +278,7 @@ jobs:
             for tag in "${tagarr[@]}"; do
               safe_tag=$(to_safe_tag "$tag")
               [ -z "$safe_tag" ] && continue
-              echo "$summary|$GITHUB_LINK" >> "$TAGS_DIR/$safe_tag.list"
+              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
             done
           done
 
@@ -296,11 +296,12 @@ jobs:
             echo "" >> "$mdx"
             
             # 요약을 제외하고 '제목'과 '바로가기'만 출력
-            echo "| Summary | Link |" >> "$mdx"
-            echo "|---------|------|" >> "$mdx"
+            echo "| 제목 | 바로가기 |" >> "$mdx"
+            echo "|------|----------|" >> "$mdx"
             
-            sort "$LIST" | uniq | while IFS="|" read summary link; do
-                echo "| $summary | [GitHub]($link) |" >> "$mdx"
+            sort "$LIST" | uniq | while IFS="|" read FNAME YEAR MONTH NEXTRA_LINK GITHUB_LINK _; do
+                TITLE=$(echo "${FNAME//-/ }" | sed 's/^[0-9]* //')  # 숫자 제거
+                echo "| $TITLE | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$mdx"
             done
             rm "$LIST"
           done
