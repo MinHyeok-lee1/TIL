@@ -239,9 +239,11 @@ jobs:
           echo "" >> "$BASE/index.mdx"
           echo "[🏷️ 태그모음](/til/tags)" >> "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
+          echo "태그모음 페이지에는 TIL들에 대한 태그 정보가 정리되어 있습니다." >> "$BASE/index.mdx"
           echo "## 📅 연도별" >> "$BASE/index.mdx"
           for YEAR in "${YEARS[@]}"; do
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
+            echo "${YEAR}년 TIL 페이지에는 ${YEAR}년에 기록한 TIL문서가 정리되어 있습니다." >> "$BASE/index.mdx"
           done
 
           echo "" >> "$BASE/index.mdx"
