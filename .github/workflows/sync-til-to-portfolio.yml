@@ -185,14 +185,14 @@ jobs:
             echo "" >> "$SUMMARY_FILE"
             echo "## $MONTH월" >> "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
-            echo "| 제목 | Summary |" >> "$SUMMARY_FILE"
-            echo "|-------|---------|" >> "$SUMMARY_FILE"
+            echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
+            echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
           fi
 
-          # 중복 제거 후 정렬하여 테이블에 제목과 요약 추가
+          # 중복 제거 후 정렬하여 테이블에 요약 및 링크 추가
           sort "$LIST" | uniq | while IFS="|" read summary NEXTRA_LINK GITHUB_LINK; do
-            TITLE=$(echo "$summary" | cut -d' ' -f1-)
-            echo "| [$TITLE]($NEXTRA_LINK) | $summary |" >> "$SUMMARY_FILE"
+            # 테이블 항목 추가 (불필요한 내용 제외)
+            echo "| \"$summary\" | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$SUMMARY_FILE"
           done
 
           # 임시 리스트 파일 삭제
