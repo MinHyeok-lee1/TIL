@@ -153,7 +153,7 @@ jobs:
           # _meta.json 파일 생성
           {
             echo "{"
-            echo '  "summaries-2025": "2025년 TIL 요약"'
+            echo '  "2025-summaries": "2025년 TIL 요약"'  # 2025년 TIL 요약 추가
             echo "}"
           } > "$DEST_BASE/_meta.json"
 
@@ -228,7 +228,7 @@ jobs:
             for YEAR in "${YEARS[@]}"; do
               echo '  ,"til-'"$YEAR"'": "'"$YEAR"'년 TIL"'
             done
-            echo '  ,"summaries-2025": "2025년 TIL 요약"'  # 2025년 TIL 요약 추가
+            echo '  ,"summaries": "요약모음"'
             echo "}"
           } > "$BASE/_meta.json"
 
