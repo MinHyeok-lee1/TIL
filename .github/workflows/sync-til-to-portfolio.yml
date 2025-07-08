@@ -147,7 +147,10 @@ jobs:
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til/summaries"
 
+          # summaries 디렉터리가 없다면 생성
+          mkdir -p "$DEST_BASE"
 
+          # _meta.json 파일 생성
           {
             echo "{"
             echo '  "summaries-2025": "2025년 TIL 요약"'
