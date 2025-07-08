@@ -147,59 +147,58 @@ jobs:
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til/summaries"
 
-          # Prepare a temporary list to collect file data
+          # 임시 리스트 생성
           LIST=$(mktemp)
 
-          # Process TIL files to generate summary pages
+          # TIL 파일을 처리하여 요약 페이지 생성
           find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
             REL_PATH="${FILE#$SRC_BASE/}"
             YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
             MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
             FNAME=$(basename "$REL_PATH" .md)
 
-            # Get YAML metadata (summary)
+            # YAML 메타데이터에서 요약 추출
             content=$(cat "$FILE")
             summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
 
-            # Correct Nextra and GitHub links (relative path)
+            # Nextra 및 GitHub 링크 생성 (상대 경로)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH"
 
-            # Collect the file data for later processing
+            # 파일 데이터를 임시 리스트에 저장
             echo "$summary|$NEXTRA_LINK|$GITHUB_LINK" >> "$LIST"
           done
 
-          # Output the formatted summary page
+          # 생성된 요약 파일 저장 (파일명: YEAR-summaries.mdx)
           SUMMARY_FILE="$DEST_BASE/$YEAR-summaries.mdx"
           mkdir -p "$(dirname "$SUMMARY_FILE")"
 
-          # Include LabelIcons import at the beginning of the file if not already added
+          # LabelIcons 컴포넌트 임포트가 없으면 추가
           if ! grep -q 'import LabelIcons' "$SUMMARY_FILE"; then
             echo 'import LabelIcons from "../../../src/components/LabelIcons";' > "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
             echo "<LabelIcons />" >> "$SUMMARY_FILE"
           fi
 
-          # Append a new month table if it doesn't exist already
+          # 해당 월의 테이블이 없다면 추가
           if ! grep -q "## $MONTH월" "$SUMMARY_FILE"; then
             echo "" >> "$SUMMARY_FILE"
             echo "## $MONTH월" >> "$SUMMARY_FILE"
             echo "" >> "$SUMMARY_FILE"
-            echo "| 요약 | Nextra 바로가기 | GitHub 바로가기 |" >> "$SUMMARY_FILE"
-            echo "|---------|-----------------|-------------------|" >> "$SUMMARY_FILE"
+            echo "| 요약 |  바로가기 |" >> "$SUMMARY_FILE"
+            echo "|---------|-------------------|" >> "$SUMMARY_FILE"
           fi
 
-          # Sort and remove duplicates, then format the table with Nextra and GitHub links
+          # 중복 제거 후 정렬하여 테이블에 요약 및 링크 추가
           sort "$LIST" | uniq | while IFS="|" read summary NEXTRA_LINK GITHUB_LINK; do
-            # Add table entry for each file with the summary in the first column and links in the second
+            # 테이블 항목 추가
             echo "| $summary | [Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK) |" >> "$SUMMARY_FILE"
           done
 
-          # Clean up temporary list
+          # 임시 리스트 파일 삭제
           rm "$LIST"
 
           shopt -u nullglob
-
       - name: Create all _meta.json and index.mdx files
         run: |
           BASE="portfolio-repo/pages/til"
