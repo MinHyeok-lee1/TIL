@@ -274,12 +274,6 @@ jobs:
             FNAME=$(basename "$REL_PATH" .mdx)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
             GITHUB_LINK="https://github.com/MinHyeok-lee1/TIL/blob/main/$YEAR/$MONTH/$FNAME.md"
-
-            for tag in "${tagarr[@]}"; do
-              safe_tag=$(to_safe_tag "$tag")
-              [ -z "$safe_tag" ] && continue
-              echo "$FNAME|$YEAR|$MONTH|$NEXTRA_LINK|$GITHUB_LINK|$summary" >> "$TAGS_DIR/$safe_tag.list"
-            done
           done
 
           for FILE in "$TAGS_DIR"/*.md; do
@@ -298,10 +292,16 @@ jobs:
 
             tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
               [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
-              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n ')
-              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]')
-              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
+                SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
+                LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
+                GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+                SLUG=$(basename "$GITHUB_LINK" .md)
+                Y=$(echo "$DATE" | cut -d'-' -f1)
+                M=$(echo "$DATE" | cut -d'-' -f2)
+                NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+
+                # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
+                LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
               echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
