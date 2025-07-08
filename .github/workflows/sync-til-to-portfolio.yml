@@ -174,10 +174,11 @@ jobs:
             # Create the summaries file for the month
             MONTH_FILE="$DEST_BASE/$YEAR/$MONTH-summaries.mdx"
             mkdir -p "$(dirname "$MONTH_FILE")"
-            echo "# 📝 Summary Pages for $MONTH/$YEAR" > "$MONTH_FILE"
-            echo "| Summary | Link |" >> "$MONTH_FILE"
+            echo "# 📝 Summary Pages for $MONTH/$YEAR" >> "$MONTH_FILE"
+            echo "<LabelIcons />" > "$MONTH_FILE"
+            echo "| 요약 | 바로가기 |" >> "$MONTH_FILE"
             echo "|---------|------|" >> "$MONTH_FILE"
-            echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) |" >> "$MONTH_FILE"
+            echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$MONTH_FILE"
 
             # Debugging: Ensure the summary is written to the file
             echo "Written summary for file $FILE"
@@ -282,7 +283,7 @@ jobs:
             done
           done
 
-      - name: Create tag tables (Nextra/GitHub/Summary)
+      - name: Create tags tables (Nextra/GitHub/Summary)
         run: |
           set -e
           BASE="portfolio-repo/pages/til"
