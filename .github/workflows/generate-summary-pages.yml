@@ -40,17 +40,19 @@ jobs:
                       title = meta.get("title", path.name)
                       summary = meta.get("summary", "No summary available")  # 비어있는 summary 처리
                       date = meta.get("date", "")
-                      year, month, _ = date.split("-") if date else ("", "", "")
-                      relpath = path.relative_to(root_dir).as_posix()
+                      
+                      # 날짜가 없는 경우 skip하거나 기본값 처리
+                      if date:
+                          year, month, _ = date.split("-")
+                          relpath = path.relative_to(root_dir).as_posix()
 
-                      # 요약 페이지 생성에 필요한 데이터 저장
-                      if year and month:
+                          # 요약 페이지 생성에 필요한 데이터 저장
                           summary_map.setdefault(year, {}).setdefault(month, []).append({
                               "title": title,
                               "summary": summary,
-                              "date": date
+                              "date": date,
+                              "link": f"{REPO_URL}{relpath}"  # 링크 추가
                           })
-
               except Exception as e:
                   print(f"⚠️ Failed to parse {path}: {e}")
 
@@ -62,16 +64,15 @@ jobs:
               os.makedirs(year_dir, exist_ok=True)
 
               for month, entries in months.items():
-                  month_dir = os.path.join(year_dir, f"{month}-summaries")
-                  os.makedirs(month_dir, exist_ok=True)
+                  # Instead of creating a folder, create a summary file directly
+                  month_summary_path = os.path.join(year_dir, f"{month}-summaries.md")
 
-                  # Create a summary page for the month
+                  # Create a summary page for the month in the form of a .md file
                   content = f"# 📝 Summary Pages for {month}/{year}\n\n| Title | Summary | Date |\n|-------|---------|------|\n"
                   for entry in entries:
-                      content += f"| {entry['title']} | {entry['summary']} | {entry['date']} |\n"
+                      content += f"| [{entry['title']}]({entry['link']}) | {entry['summary']} | {entry['date']} |\n"
 
-                  # Write the month summary page
-                  month_summary_path = os.path.join(month_dir, "index.md")
+                  # Write the month summary page as 07-summaries.md (instead of creating a folder)
                   with open(month_summary_path, "w", encoding="utf-8") as f:
                       f.write(content)
 
