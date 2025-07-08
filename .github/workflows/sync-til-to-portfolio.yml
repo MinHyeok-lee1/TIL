@@ -147,6 +147,13 @@ jobs:
           SRC_BASE="til-repo"
           DEST_BASE="portfolio-repo/pages/til/summaries"
 
+
+          {
+            echo "{"
+            echo '  "summaries-2025": "2025년 TIL 요약"'
+            echo "}"
+          } > "$DEST_BASE/_meta.json"
+
           # 임시 리스트 생성
           LIST=$(mktemp)
 
@@ -218,9 +225,11 @@ jobs:
             for YEAR in "${YEARS[@]}"; do
               echo '  ,"til-'"$YEAR"'": "'"$YEAR"'년 TIL"'
             done
+            echo '  ,"summaries-2025": "2025년 TIL 요약"'  # 2025년 TIL 요약 추가
             echo "}"
           } > "$BASE/_meta.json"
 
+          # index.mdx 파일 업데이트
           echo "# 📓 Today I Learned (TIL)" > "$BASE/index.mdx"
           echo "" >> "$BASE/index.mdx"
           echo "> 꾸준한 기록은 최고의 성장으로 이어진다." >> "$BASE/index.mdx"
@@ -231,6 +240,12 @@ jobs:
           for YEAR in "${YEARS[@]}"; do
             echo "- [${YEAR}년 TIL](/til/til-$YEAR)" >> "$BASE/index.mdx"
           done
+
+          echo "" >> "$BASE/index.mdx"
+          echo "## 📑 2025년 TIL 요약" >> "$BASE/index.mdx"
+          echo "[2025년 TIL 요약](/til/summaries/2025-summaries)" >> "$BASE/index.mdx"
+          echo "" >> "$BASE/index.mdx"
+          echo "2025년 TIL 요약 페이지에는 2025년에 기록한 TIL들에 대한 요약과 관련된 정보가 정리되어 있습니다." >> "$BASE/index.mdx"
 
           for YEAR in "${YEARS[@]}"; do
             YEAR_DIR="$BASE/til-$YEAR"
