@@ -75,7 +75,9 @@ jobs:
             # 각 파일에서 데이터를 읽어 테이블 형식으로 작성
             tail -n +3 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
               # 비어있는 TITLE이나 SUMMARY, "Title", "---"을 제외
-              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" ]] && continue
+              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" ]]; then
+                continue
+              fi
 
               SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
               LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
@@ -279,17 +281,20 @@ jobs:
             echo "|------|------|----------|" >> "$mdx"
 
             tail -n +5 "$FILE" | while IFS='|' read -r _ TITLE SUMMARY DATE _; do
-              [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" ]] && continue
-                SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
-                LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
-                GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
-                SLUG=$(basename "$GITHUB_LINK" .md)
-                Y=$(echo "$DATE" | cut -d'-' -f1)
-                M=$(echo "$DATE" | cut -d'-' -f2)
-                NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
+              # 비어있는 TITLE이나 SUMMARY, "Title", "---"을 제외
+              if [[ "$TITLE" == "Title" || "$TITLE" == "---" || -z "$TITLE" || -z "$SUMMARY" ]]; then
+                continue
+              fi
+              SUMMARY_TEXT=$(echo "$SUMMARY" | tr -d '\r\n' | sed 's/\s\+$//')
+              LINK_TEXT=$(echo "$TITLE" | grep -oP '\[[^]]+\]' | tr -d '[]' | sed 's/\s\+$//')
+              GITHUB_LINK=$(echo "$TITLE" | grep -oP '\(([^)]+)\)' | tr -d '()')
+              SLUG=$(basename "$GITHUB_LINK" .md)
+              Y=$(echo "$DATE" | cut -d'-' -f1)
+              M=$(echo "$DATE" | cut -d'-' -f2)
+              NEXTRA_LINK="/til/til-$Y/til-$M/$SLUG"
 
-                # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
-                LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
+              # Nextra와 GitHub 링크 합쳐서 바로가기 셀에 넣기
+              LINK_CELL="[Nextra]($NEXTRA_LINK) \| [GitHub]($GITHUB_LINK)"
 
               echo "| $LINK_TEXT | $SUMMARY_TEXT | $LINK_CELL |" >> "$mdx"
             done
