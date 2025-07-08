@@ -175,14 +175,28 @@ jobs:
             MONTH_FILE="$DEST_BASE/$YEAR/$MONTH-summaries.mdx"
             mkdir -p "$(dirname "$MONTH_FILE")"
             echo "# 📝 Summary Pages for $MONTH/$YEAR" >> "$MONTH_FILE"
-            echo "<LabelIcons />" > "$MONTH_FILE"
+            echo "<LabelIcons />" >> "$MONTH_FILE" 
             echo "| 요약 | 바로가기 |" >> "$MONTH_FILE"
             echo "|---------|------|" >> "$MONTH_FILE"
-            echo "| $summary | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$MONTH_FILE"
+
+            # Process each file to generate summary and link rows
+            find "$SRC_BASE" -type f -name "*.md" ! -path "$SRC_BASE/tags/*" | grep -vE '^til-repo/README\.md$' | while read FILE; do
+              REL_PATH="${FILE#$SRC_BASE/}"
+              YEAR=$(echo "$REL_PATH" | cut -d'/' -f1)
+              MONTH=$(echo "$REL_PATH" | cut -d'/' -f2)
+              FNAME=$(basename "$REL_PATH" .md)
+
+              # Get YAML metadata
+              content=$(cat "$FILE")
+              summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
+              title=$(echo "$content" | sed -n '/^title:/p' | sed 's/title: //')
+
+              # Add summary and links to the table
+              echo "| \"$summary\" | [Nextra](/til/til-$YEAR/til-$MONTH/$FNAME) \| [GitHub](https://github.com/MinHyeok-lee1/TIL/blob/main/$REL_PATH) |" >> "$MONTH_FILE"
+            done
 
             # Debugging: Ensure the summary is written to the file
-            echo "Written summary for file $FILE"
-          done
+            echo "Written summaries to $MONTH_FILE"
 
       - name: Create all _meta.json and index.mdx files
         run: |
