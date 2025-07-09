@@ -171,7 +171,7 @@ jobs:
 
             # YAML 메타데이터에서 요약 추출
             content=$(cat "$FILE")
-            summary=$(echo "$content" | sed -n '/^summary:/p' | sed 's/summary: //')
+            summary=$(sed -n 's/^summary: *//p' "$FILE" | sed 's/^["'\'']\(.*\)["'\'']$/\1/')
 
             # Nextra 및 GitHub 링크 생성 (상대 경로)
             NEXTRA_LINK="/til/til-$YEAR/til-$MONTH/$FNAME"
