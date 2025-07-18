@@ -13,6 +13,7 @@
 | [PlatformIO에서 STM32 + C++17 빌드 오류: GCC 버전 문제 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/16-issuePlatformIOCpp.md) | PlatformIO에서 발생하는 C++17 문법 관련 빌드 오류와 그 원인, 해결 방법을 STM32 프로젝트 사례로 정리 |
 | [삼성 인터넷 브라우저에서 다크모드/회색 배경, Lottie 색상 깨짐 현상 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/07-issueSamsungInternet.md) | 삼성인터넷의 어둡게 보기(스마트 다크모드) 옵션이 웹 색상과 Lottie, SVG 등에 미치는 영향 및 실전 해결 방법 정리 |
 | [프록시(Proxy)의 모든 것](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/05-proxy.md) | 프록시 개념과 네트워크, 리버스, 이미지 프록시 차이·활용법 정리 |
+| [LiDAR 센서](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/18-LiDAR.md) | LiDAR 센서 이론 정리: 원리, 방식, SLAM과의 관계 |
 | [Makefile 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/10-Makefile.md) | Makefile이란 무엇이며, 왜 사용하는가? |
 | [SLAM](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/17-slam.md) | SLAM(Simultaneous Localization and Mapping) 이론 정리 |
 | [GitHub Template 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/03-Template.md) | GitHub의 다양한 템플릿 기능(issue, PR, workflow 등)에 대한 정리 |
