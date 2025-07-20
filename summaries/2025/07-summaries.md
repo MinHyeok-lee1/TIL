@@ -15,6 +15,7 @@
 | [프록시(Proxy)의 모든 것](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/05-proxy.md) | 프록시 개념과 네트워크, 리버스, 이미지 프록시 차이·활용법 정리 |
 | [LiDAR 센서](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/18-LiDAR.md) | LiDAR 센서 이론 정리: 원리, 방식, SLAM과의 관계 |
 | [ROS2](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/19-Ros.md) | ROS2 이론 정리: 구조와 핵심 개념 |
+| [ROS2 버전 비교](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/20-RosVersion.md) | ROS2 버전 비교: Humble vs Jazzy, 어떤 걸 선택할까? |
 | [Makefile 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/10-Makefile.md) | Makefile이란 무엇이며, 왜 사용하는가? |
 | [SLAM](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/17-slam.md) | SLAM(Simultaneous Localization and Mapping) 이론 정리 |
 | [GitHub Template 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/03-Template.md) | GitHub의 다양한 템플릿 기능(issue, PR, workflow 등)에 대한 정리 |
