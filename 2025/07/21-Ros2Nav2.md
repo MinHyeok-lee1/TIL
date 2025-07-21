@@ -1,13 +1,13 @@
 ---
-title: "ROS 2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리"
+title: "ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리"
 date: "2025-07-21"
 tags: ["ros2", "nav2", "gazebo", "slam"]
-summary: "ROS 2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리"
+summary: "ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리"
 ---
 
-# ROS 2 기반 내비게이션 시스템 개요
+# ROS2 기반 내비게이션 시스템 개요
 
-ROS 2 기반 내비게이션 스택인 Nav2의 구성과 동작 원리를 정리  
+ROS2 기반 내비게이션 스택인 Nav2의 구성과 동작 원리를 정리  
 시뮬레이션부터 SLAM, 맵핑, 경로 계획, Behavior Tree에 이르기까지 핵심 위주로 정리
 
 ---
@@ -39,14 +39,14 @@ ROS 2 기반 내비게이션 스택인 Nav2의 구성과 동작 원리를 정리
 | 구성 요소  | 내용                      |
 | ---------- | ------------------------- |
 | OS         | Ubuntu 22.04 이상         |
-| ROS 2 버전 | **Jazzy (추천)** / Humble |
+| ROS2 버전  | **Jazzy (추천)** / Humble |
 | 시뮬레이터 | Gazebo Harmonic           |
 
 ---
 
 | 기본 구성 순서 | 내용                                   |
 | -------------- | -------------------------------------- |
-| ①              | ROS 2 + Gazebo 설치                    |
+| ①              | ROS2 + Gazebo 설치                     |
 | ②              | TurtleBot3 or custom robot 패키지 설치 |
 | ③              | URDF → Gazebo 로봇 스폰                |
 | ④              | sensor plugin + controller 설정        |
