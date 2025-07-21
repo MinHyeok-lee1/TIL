@@ -9,7 +9,7 @@
 | [TIL](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/01-TIL.md) | TIL이란? |
 | [임베디드 빌드 시스템](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/13-embeddedBuild.md) | 임베디드 빌드 시스템: Makefile, CMake, Ninja의 현업 트렌드 |
 | [CMake 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/11-CMake.md) | CMake란 무엇이며, 왜 사용하는가? |
-| [ROS 2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/21-Ros2Nav2.md) | ROS 2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리 |
+| [ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/21-Ros2Nav2.md) | ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리 |
 | [bash에서 ssh-agent, ssh-add issue (source와 실행의 차이)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/06-issueBashSsh.md) | bash 환경에서 ssh-agent/ssh-add 스크립트 실행 시 source를 써야 하는 이유와 실전 예시 |
 | [PlatformIO에서 STM32 + C++17 빌드 오류: GCC 버전 문제 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/16-issuePlatformIOCpp.md) | PlatformIO에서 발생하는 C++17 문법 관련 빌드 오류와 그 원인, 해결 방법을 STM32 프로젝트 사례로 정리 |
 | [삼성 인터넷 브라우저에서 다크모드/회색 배경, Lottie 색상 깨짐 현상 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/07-issueSamsungInternet.md) | 삼성인터넷의 어둡게 보기(스마트 다크모드) 옵션이 웹 색상과 Lottie, SVG 등에 미치는 영향 및 실전 해결 방법 정리 |
