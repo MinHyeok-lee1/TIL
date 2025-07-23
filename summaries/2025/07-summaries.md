@@ -2,6 +2,7 @@
 
 | Title | Summary |
 |-------|---------|
+| [듀얼부팅 정리(Windows + Ubuntu)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/22-DualBoot.md) | 듀얼부팅 개념과 실습 가이드: Windows + Ubuntu |
 | [Username Repository](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/02-UsernameRepository.md) | 특별 저장소, Username Repository 정리 |
 | [GitHub Actions 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/04-GitHubActions.md) | GitHub Actions의 개념과 왜 사용하는 지에 대한 정리 |
 | [CMake 기반 STM32 프로젝트 템플릿화: VSCode + Ninja 올인원 빌드 환경 구성](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/15-TemplateCMake.md) | STM32CubeMX 기반 프로젝트를 CMake와 Ninja로 빌드 자동화하고, VSCode에서 쉽게 개발 가능한 템플릿 환경을 구축합니다. |
@@ -9,6 +10,7 @@
 | [TIL](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/01-TIL.md) | TIL이란? |
 | [임베디드 빌드 시스템](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/13-embeddedBuild.md) | 임베디드 빌드 시스템: Makefile, CMake, Ninja의 현업 트렌드 |
 | [CMake 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/11-CMake.md) | CMake란 무엇이며, 왜 사용하는가? |
+| [듀얼부팅: Ubuntu 24.04 설치 실패 이슈](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/23-issueDualBoot.md) | 24.04 설치가 안 되는 상황에서 22.04로 설치 후 업그레이드까지의 과정을 정리함 |
 | [ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/21-Ros2Nav2.md) | ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리 |
 | [bash에서 ssh-agent, ssh-add issue (source와 실행의 차이)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/06-issueBashSsh.md) | bash 환경에서 ssh-agent/ssh-add 스크립트 실행 시 source를 써야 하는 이유와 실전 예시 |
 | [PlatformIO에서 STM32 + C++17 빌드 오류: GCC 버전 문제 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/16-issuePlatformIOCpp.md) | PlatformIO에서 발생하는 C++17 문법 관련 빌드 오류와 그 원인, 해결 방법을 STM32 프로젝트 사례로 정리 |
