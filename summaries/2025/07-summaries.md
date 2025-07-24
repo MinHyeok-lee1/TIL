@@ -15,6 +15,7 @@
 | [bash에서 ssh-agent, ssh-add issue (source와 실행의 차이)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/06-issueBashSsh.md) | bash 환경에서 ssh-agent/ssh-add 스크립트 실행 시 source를 써야 하는 이유와 실전 예시 |
 | [PlatformIO에서 STM32 + C++17 빌드 오류: GCC 버전 문제 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/16-issuePlatformIOCpp.md) | PlatformIO에서 발생하는 C++17 문법 관련 빌드 오류와 그 원인, 해결 방법을 STM32 프로젝트 사례로 정리 |
 | [삼성 인터넷 브라우저에서 다크모드/회색 배경, Lottie 색상 깨짐 현상 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/07-issueSamsungInternet.md) | 삼성인터넷의 어둡게 보기(스마트 다크모드) 옵션이 웹 색상과 Lottie, SVG 등에 미치는 영향 및 실전 해결 방법 정리 |
+| [Ubuntu에서 한글 입력이 안 될 때 ibus 설정으로 해결하기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/24-issueUbuntu.md) | Ubuntu에서 한글 입력이 되지 않을 때 ibus 입력기를 기준으로 문제를 진단하고 설정을 통해 해결하는 전체 과정을 정리 |
 | [프록시(Proxy)의 모든 것](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/05-proxy.md) | 프록시 개념과 네트워크, 리버스, 이미지 프록시 차이·활용법 정리 |
 | [LiDAR 센서](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/18-LiDAR.md) | LiDAR 센서 이론 정리: 원리, 방식, SLAM과의 관계 |
 | [ROS2](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/19-Ros.md) | ROS2 이론 정리: 구조와 핵심 개념 |
