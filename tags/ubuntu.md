@@ -2,7 +2,7 @@
 
 | Title | Summary | Date |
 |-------|---------|------|
-| [Ubuntu 24.04.2 + Zsh + ROS 2 Jazzy 생산성 향상 스택 가이드](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/26-ubuntuDevTools.md) | Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드 | 2025-07-26 |
+| [Ubuntu 24.04.2 기반 ROS 2 + Zsh 생산성 향상 개발환경 구성 가이드](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/26-ubuntuDevTools.md) | Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드 | 2025-07-26 |
 | [Ubuntu 24.04 수동 설치 및 GUI 복구 구축기 (HP OMEN 16, 듀얼부팅)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/25-issueUbuntuInstall.md) | 정상 설치가 불가능했던 HP OMEN 16 노트북에서 Ubuntu 24.04를 debootstrap으로 수동 설치하고 GUI 및 터치패드까지 복구한 전 과정 기록 | 2025-07-25 |
 | [Ubuntu에서 한글 입력이 안 될 때 ibus 설정으로 해결하기](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/24-issueUbuntuHangul.md) | Ubuntu에서 한글 입력이 되지 않을 때 ibus 입력기를 기준으로 문제를 진단하고 설정을 통해 해결하는 전체 과정을 정리 | 2025-07-24 |
 | [듀얼부팅: Ubuntu 24.04 설치 실패 이슈](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/23-issueDualBoot.md) | 24.04 설치가 안 되는 상황에서 22.04로 설치 후 업그레이드까지의 과정을 정리함 | 2025-07-23 |
