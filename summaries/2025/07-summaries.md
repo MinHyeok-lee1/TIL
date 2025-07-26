@@ -10,7 +10,7 @@
 | [TIL](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/01-TIL.md) | TIL이란? |
 | [임베디드 빌드 시스템](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/13-embeddedBuild.md) | 임베디드 빌드 시스템: Makefile, CMake, Ninja의 현업 트렌드 |
 | [CMake 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/11-CMake.md) | CMake란 무엇이며, 왜 사용하는가? |
-| [Ubuntu 24.04.2 + Zsh + ROS 2 Jazzy 생산성 향상 스택 가이드](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/26-ubuntuDevTools.md) | Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드 |
+| [Ubuntu 24.04.2 기반 ROS 2 + Zsh 생산성 향상 개발환경 구성 가이드](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/26-ubuntuDevTools.md) | Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드 |
 | [듀얼부팅: Ubuntu 24.04 설치 실패 이슈](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/23-issueDualBoot.md) | 24.04 설치가 안 되는 상황에서 22.04로 설치 후 업그레이드까지의 과정을 정리함 |
 | [ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/21-Ros2Nav2.md) | ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리 |
 | [bash에서 ssh-agent, ssh-add issue (source와 실행의 차이)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/06-issueBashSsh.md) | bash 환경에서 ssh-agent/ssh-add 스크립트 실행 시 source를 써야 하는 이유와 실전 예시 |
