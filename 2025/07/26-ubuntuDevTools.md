@@ -1,11 +1,13 @@
 ---
-title: "Ubuntu 24.04.2 + Zsh + ROS 2 Jazzy 생산성 향상 스택 가이드"
+title: "Ubuntu 24.04.2 기반 ROS 2 + Zsh 생산성 향상 개발환경 구성 가이드"
 date: "2025-07-26"
 tags: ["ubuntu", "zsh", "ros2", "jazzy", "gazebo", "devtools"]
 summary: "Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드"
 ---
 
-# 🛠️ Ubuntu 24.04.2 기반 ROS 2 + Zsh 생산성 향상 개발환경 구성 가이드
+# Ubuntu 24.04.2 기반 ROS 2 + Zsh 생산성 향상 개발환경 구성 가이드
+
+Ubuntu 24.04.2 Noble 기반 개발환경에서 zsh, AI CLI 자동완성, ROS2, Gazebo 등으로 생산성을 향상시키는 스택 및 설정 가이드
 
 ---
 

@@ -111,7 +111,78 @@ summary: "정상 설치가 불가능했던 HP OMEN 16 노트북에서 Ubuntu 24.
 
 ---
 
-## 🖱️ 5. 터치패드 및 마우스 동작 복구
+## 🔌 5. 오프라인 드라이버 설치로 유선랜 복구
+
+### ⚠️ 문제
+
+- GUI 진입 성공했으나, `ip link` 시 `lo`만 보이고 유선랜 장치가 안 뜸
+- `modprobe r8168` → `FATAL: Module r8168 not found`
+
+### 💡 해결 전략
+
+- `linux-modules-extra-6.8.0-64-generic.deb` 파일 수동 다운로드
+- USB로 노트북에 옮겨서 수동 설치 후 유선랜 인식 성공
+
+### 📦 사용한 파일
+
+- `linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb`
+
+  - 다운로드 링크:
+    [https://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb](https://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb)
+
+- `linux-modules-6.8.0-64-generic_6.8.0-64.67_amd64.deb`
+
+  - 다운로드 링크:
+    [https://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb](https://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb)
+
+### 🧭 설치 순서
+
+1. USB에 `.deb` 파일 복사
+
+2. 노트북에서 USB 마운트 확인:
+
+   ```bash
+   lsblk
+   sudo mount /dev/sda1 /mnt
+   ```
+
+3. `.deb` 설치:
+
+   ```bash
+   cd /mnt
+   sudo dpkg -i linux-modules-6.8.0-64-generic_6.8.0-64.67_amd64.deb
+   sudo dpkg -i linux-modules-extra-6.8.0-64-generic_6.8.0-64.67_amd64.deb
+   ```
+
+4. 드라이버 로드:
+
+   ```bash
+   sudo modprobe r8169
+   ```
+
+5. 네트워크 확인:
+
+   ```bash
+   ip link
+   ```
+
+   → enpXsY처럼 유선 랜카드 장치가 보여야 함
+
+6. 설치 후 재시작:
+
+   ```bash
+   sudo reboot
+   ```
+
+7. 인터넷 정상 작동 확인:
+
+   ```bash
+   ping -c 3 8.8.8.8
+   ```
+
+---
+
+## 🖱️ 6. 터치패드 및 마우스 동작 복구
 
 ```bash
 apt install xserver-xorg-input-libinput xserver-xorg-input-synaptics -y
@@ -121,7 +192,7 @@ apt install xserver-xorg-input-libinput xserver-xorg-input-synaptics -y
 
 ---
 
-## 🧵 6. 마무리 및 팁
+## 🧵 7. 마무리 및 팁
 
 - **재부팅 후 GUI가 CLI로 뜰 경우**
 
