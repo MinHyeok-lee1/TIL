@@ -1,7 +1,7 @@
 ---
 title: "듀얼부팅: Ubuntu 24.04 설치 실패 이슈"
 date: "2025-07-23"
-tags: ["dualboot", "ubuntu", "windows", "grub", "uefi", "os"]
+tags: ["dualboot", "ubuntu", "windows", "grub", "issue"]
 summary: "24.04 설치가 안 되는 상황에서 22.04로 설치 후 업그레이드까지의 과정을 정리함"
 ---
 

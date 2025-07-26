@@ -1,7 +1,7 @@
 ---
 title: "PlatformIO에서 STM32 + C++17 빌드 오류: GCC 버전 문제 정리"
 date: "2025-07-15"
-tags: ["embedded", "stm32", "platformio", "cpp17", "gcc", "toolchain"]
+tags: ["embedded", "platformio", "cpp17", "toolchain", "os"]
 summary: "PlatformIO에서 발생하는 C++17 문법 관련 빌드 오류와 그 원인, 해결 방법을 STM32 프로젝트 사례로 정리"
 ---
 
