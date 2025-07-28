@@ -24,6 +24,7 @@
 | [ROS2 버전 비교](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/20-RosVersion.md) | ROS2 버전 비교: Humble vs Jazzy, 어떤 걸 선택할까? |
 | [Makefile 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/10-Makefile.md) | Makefile이란 무엇이며, 왜 사용하는가? |
 | [SLAM](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/17-slam.md) | SLAM(Simultaneous Localization and Mapping) 이론 정리 |
+| [🖥️ 듀얼부팅(Ubuntu ↔ Windows) 환경에서 종료 방식 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/28-issueUbuntuPowerOff.md) | Ubuntu에서 Windows로 자동 부팅하거나 종료하는 다양한 방식 정리. 전원 버튼 클릭 시 동작 방식 구성까지 포함 |
 | [Ubuntu 24.04 수동 설치 및 GUI 복구 구축기 (HP OMEN 16, 듀얼부팅)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/25-issueUbuntuInstall.md) | 정상 설치가 불가능했던 HP OMEN 16 노트북에서 Ubuntu 24.04를 debootstrap으로 수동 설치하고 GUI 및 터치패드까지 복구한 전 과정 기록 |
 | [GitHub Template 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/03-Template.md) | GitHub의 다양한 템플릿 기능(issue, PR, workflow 등)에 대한 정리 |
 | [CMake vs Makefile](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/12-CmakeMakefile.md) | CMake와 Makefile의 차이점과 선택 기준은? |
