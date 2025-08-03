@@ -1,13 +1,13 @@
 ---
-title: "ROS 2 Jazzy, Gazebo 설치"
+title: "ROS2 Jazzy, Gazebo 설치"
 date: "2025-08-01"
 tags: ["ros2", "jazzy", "gazebo", "cli"]
-summary: ROS 2 Jazzy + Gazebo 설치 및 실행 확인 명령어 정리"
+summary: ROS2 Jazzy + Gazebo 설치 및 실행 확인 명령어 정리"
 ---
 
-# 🛠️ ROS 2 Jazzy + Gazebo 명령어 정리
+# 🛠️ ROS2 Jazzy + Gazebo 명령어 정리
 
-ROS 2 Jazzy와 Gazebo 패키지 설치 후 환경변수 및 시뮬레이터 실행 확인을 위한 기본 명령어 모음
+ROS2 Jazzy와 Gazebo 패키지 설치 후 환경변수 및 시뮬레이터 실행 확인을 위한 기본 명령어 모음
 
 ---
 
@@ -18,7 +18,7 @@ lsb_release -a
 ```
 
 - 현재 Ubuntu 배포판 및 버전 확인용
-- ROS 2 Jazzy는 Ubuntu 24.04(Noble) 지원함
+- ROS2 Jazzy는 Ubuntu 24.04(Noble) 지원함
 
 ---
 
@@ -28,7 +28,7 @@ lsb_release -a
 source /opt/ros/jazzy/setup.zsh
 ```
 
-- ROS 2 설치 경로 로드
+- ROS2 설치 경로 로드
 - `.zshrc`에 추가하면 매번 실행 안 해도 됨
 
 ---
