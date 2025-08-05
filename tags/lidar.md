@@ -1,5 +1,5 @@
-# 🏷️ Tag: lidar
+# 🏷️ Tag: LiDAR
 
 | Title | Summary | Date |
 |-------|---------|------|
-| [LiDAR 센서](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/18-LiDAR.md) | LiDAR 센서 이론 정리: 원리, 방식, SLAM과의 관계 | 2025-07-18 |
+| [TurtleBot4 시뮬레이션 LiDAR 값 변경되지 않는 이슈](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/08/03-issueTurtleBot4LiDAR.md) | TurtleBot4 시뮬레이션 LiDAR 시각화 오류 해결 | 2025-08-03 |
