@@ -1,6 +1,5 @@
-# 🏷️ Tag: nav2
+# 🏷️ Tag: gimp
 
 | Title | Summary | Date |
 |-------|---------|------|
 | [GIMP 활용 가이드 (ROS2 Nav2 시각화)](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/08/05-GIMP.md) | GIMP를 활용하여 ROS2 Nav2용 맵(.pgm, .yaml)을 편집 및 최적화하는 방법 | 2025-08-05 |
-| [ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/07/21-Ros2Nav2.md) | ROS2 내비게이션(Nav2) 시스템 개요 및 구성 요소 정리 | 2025-07-21 |
