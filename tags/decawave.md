@@ -1,0 +1,5 @@
+# 🏷️ Tag: decawave
+
+| Title | Summary | Date |
+|-------|---------|------|
+| [Decawave DW1000 / DW3000 시리즈 비교 정리](https://github.com/MinHyeok-lee1/TIL/blob/main/2025/08/07-DecawaveDwSeries.md) | UWB 모듈인 DW1000과 DW3000(DW3110/3120/3130/3220 등) 시리즈의 주요 사양과 차이점, 활용 예시를 비교 정리한 문서 | 2025-08-07 |
