@@ -70,8 +70,6 @@ UWB 기술을 기반으로 하는 **Decawave/Qorvo**의 대표적인 칩셋인 *
 ## 🔗 참고 링크
 
 - [DW1000 데이터시트](https://www.qorvo.com/products/p/DW1000)
-- [DW3000 시리즈 개요](https://www.qorvo.com/products/d/da000596)
-- [Qorvo UWB SDK](https://uwb.qorvo.com)
 - [IEEE 802.15.4z 공식 소개](https://ieeexplore.ieee.org/document/9040269)
 
 ---

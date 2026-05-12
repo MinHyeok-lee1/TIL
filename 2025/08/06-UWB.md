@@ -82,10 +82,8 @@ summary: "UWB(Ultra-Wideband)의 정의, 동작 원리, 주요 특성, BLE와의
 
 ## 🔗 참고 링크
 
-- [Qorvo UWB 기술 개요](https://www.qorvo.com/applications/uwb)
 - [IEEE 802.15.4z 소개](https://ieeexplore.ieee.org/document/9040269)
 - [FiRa Consortium](https://www.firaconsortium.org/)
-- [Apple U1 칩 소개](https://support.apple.com/en-us/HT211870)
 
 ---
 
